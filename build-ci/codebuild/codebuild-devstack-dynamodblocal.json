@@ -16,14 +16,16 @@
   },
   "environment": {
     "type": "LINUX_CONTAINER",
+    "image": "aws/codebuild/standard:4.0",
     "imagePullCredentialsType": "CODEBUILD",
     "computeType": "BUILD_GENERAL1_SMALL",
-    "image": "aws/codebuild/standard:4.0"
+    "privilegedMode": true
   },
   "timeoutInMinutes": 60,
   "logsConfig": {
     "cloudWatchLogs": {
-      "status": "DISABLED"
+      "status": "ENABLED",
+      "groupName": "/aws/codebuild/devstack-dynamodblocal"
     },
     "s3Logs": {
       "status": "ENABLED",
