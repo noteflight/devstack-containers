@@ -1,0 +1,29 @@
+{
+  "Resources": {
+    "BuildBucket": {
+      "Type": "AWS::S3::Bucket"
+    }
+  },
+  "Outputs": {
+    "BuildBucket": {
+      "Description": "The bucket containing build results and logs",
+      "Value": {
+        "Ref": "BuildBucket"
+      }
+    },
+    "BuildBucketArn": {
+      "Description": "The arn of the bucket containing build results and logs",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "arn:aws:s3:::",
+            {
+              "Ref": "BuildBucket"
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

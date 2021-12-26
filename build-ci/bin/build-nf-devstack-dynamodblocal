@@ -6,6 +6,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 . ${DIR}/build-common
 
 build_container \
-    ${DIR}/../containers/nf-devstack-elasticsearch \
-    nf-devstack-elasticsearch \
-    nf-devstack-elasticsearch
+    ${DIR}/../../containers/nf-devstack-dynamodblocal \
+    nf-devstack-dynamodblocal \
+    nf-devstack-dynamodblocal

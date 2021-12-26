@@ -12,8 +12,6 @@
 # $1: context directory (with Dockerfile at root)
 # $2: local image name
 # $3: ECR image name
-#
-# This will use whatever default 
 build_container () {
     CONTEXT_DIR=$1
     IMAGE_TAG=$2
