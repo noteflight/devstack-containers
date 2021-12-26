@@ -1,0 +1,2 @@
+export STACK_NAME=devstack-containers
+export TEMPLATE_FILE=${DIR}/../CloudFormationTemplate.json

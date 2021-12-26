@@ -2,6 +2,19 @@
   "Resources": {
     "BuildBucket": {
       "Type": "AWS::S3::Bucket"
+    },
+    "Repositorydynamodblocal": {
+      "Type": "AWS::ECR::Repository",
+      "Properties": {
+        "RepositoryName": "nf-devstack-dynamodblocal"
+      }
+    },
+    "CloudWatchLogGroupdynamodblocal": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/codebuild/devstack-dynamodblocal",
+        "RetentionInDays": 180
+      }
     }
   },
   "Outputs": {

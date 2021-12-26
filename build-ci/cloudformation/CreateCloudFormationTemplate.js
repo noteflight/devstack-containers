@@ -29,8 +29,10 @@ function generateSpec() {
     Value: Join("", ["arn:aws:s3:::", Ref("BuildBucket")])
   }
 
-  // Add an ECR repository for each container
-  addECRContainers(Resources, Outputs, containers)
+  // Add the components that are container-specific
+  containers.forEach(container=>{
+    addContainerComponents(Resources, Outputs, container)
+  })
 
   
   // CloudWatch
@@ -42,7 +44,23 @@ function generateSpec() {
   return {Resources, Outputs}
 }
 
-function addECRContainers(Resources, Outputs, containers) {
+function addContainerComponents(Resources, Outputs, container) {
+  // Add the ECR Repository
+  Resources[`Repository${container}`] = {
+    Type : "AWS::ECR::Repository",
+    Properties: {
+      RepositoryName: `nf-devstack-${container}`
+    }
+  }
+
+  // Add the CloudWatch logs Log Group
+  Resources[`CloudWatchLogGroup${container}`] = {
+    Type : "AWS::Logs::LogGroup",
+    Properties: {
+      LogGroupName: `/aws/codebuild/devstack-${container}`,
+      RetentionInDays: 180,
+    }
+  }
 }
 
 /*

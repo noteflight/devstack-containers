@@ -1,0 +1,10 @@
+#!/bin/bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+. ${DIR}/cf-common
+
+echo "Generating cloudformation template ${TEMPLATE_FILE}"
+node ${DIR}/../CreateCloudFormationTemplate.js > ${TEMPLATE_FILE}
+echo "Updating cloudformation stack ${STACK_NAME}"
+aws cloudformation update-stack --stack-name ${STACK_NAME} --capabilities CAPABILITY_IAM --template-body file://${TEMPLATE_FILE}
