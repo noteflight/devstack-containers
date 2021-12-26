@@ -1,4 +1,8 @@
 
+// The ARN of the AWS secrets manager holding the credentials for
+// logging into DockerHub
+DOCKER_HUB_CREDENTIALS_ARN="arn:aws:secretsmanager:us-east-1:915434789528:secret:dockerhub/account/arista-bDIz6P"
+
 // Helper functions for generating common CF constructs
 function GetAtt(resource, attributeName) {
   return {"Fn::GetAtt": [resource, attributeName]}
@@ -34,12 +38,68 @@ function generateSpec() {
     addContainerComponents(Resources, Outputs, container)
   })
 
+  // Create the IAM role that CodeBuild will use.  It needs the
+  // ability to write to the ECR repositories, and to read the docker
+  // hub secret
+  Resources.BuildRole = {
+    Type: "AWS::IAM::Role",
+    Properties: {
+      AssumeRolePolicyDocument: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Effect: "Allow",
+            Principal: {
+              Service: "codebuild.amazonaws.com"
+            },
+            Action: "sts:AssumeRole"
+          }
+        ]
+      },
+      Policies: [
+        {
+          PolicyName: "DevstackContainersBuildRolePolicy",
+          PolicyDocument: {
+            Version: "2012-10-17",
+            Statement: [
+              // Allow push/pull from the ECR repositories
+              {
+                Sid: "AllowECRPushPull",
+                Effect: "Allow",
+                Action: [
+                  "ecr:BatchGetImage",
+                  "ecr:BatchCheckLayerAvailability",
+                  "ecr:CompleteLayerUpload",
+                  "ecr:GetDownloadUrlForLayer",
+                  "ecr:InitiateLayerUpload",
+                  "ecr:PutImage",
+                  "ecr:UploadLayerPart",
+                ],
+                "Resource": containers.map(container=>GetAtt(`Repository${container}`, "Arn"))
+              },
+              // Allow access to the DockerHub account credentials
+              {
+                Sid: "AllowDockerHubSecret",
+                Effect: "Allow",
+                Action: [
+                  "secretsmanager:GetResourcePolicy",
+                  "secretsmanager:GetSecretValue",
+                  "secretsmanager:DescribeSecret",
+                  "secretsmanager:ListSecretVersionIds"
+                ],
+                Resource: [
+                  DOCKER_HUB_CREDENTIALS_ARN
+                ]
+              },
+            ]
+          }
+        }
+      ]
+    },
+  }
   
-  // CloudWatch
+  
   // CodeBuilds
-  // IAM role
-  // IAM policy for ECR writing
-  // IAM policy for Secrets file writing
 
   return {Resources, Outputs}
 }
