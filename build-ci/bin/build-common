@@ -35,6 +35,7 @@ build_container () {
 
     echo "Logging into Docker Hub as user ${DOCKER_HUB_USER}"
     echo "(this is necessary because all CodeBuild processes appear to come from a limited set of IP's, and Docker Hub now rate limits requests, unless they come from a logged-in Docker Hub user)"
+    echo "(ignore docker's warnings about --password - CodeBuild runs in a container with an ephemeral filesystem)"
     docker login -u ${DOCKER_HUB_USER} -p ${DOCKER_HUB_PASSWORD}
 
     docker build --no-cache -t ${IMAGE_TAG} ${CONTEXT_DIR}
@@ -49,7 +50,7 @@ build_container () {
     # We can't use docker login --password-stdin within a CodeBuild
     # process, so we pass in the password using -p instead
     ECR_PASSWORD=`aws ecr get-login-password`
-    docker login -u AWS -p ${ECR_PASSWORD}
+    docker login -u AWS -p ${ECR_PASSWORD} ${REGISTRY_SERVER}
     
     echo "Pushing images"
     docker push ${SHORT_TAG}
