@@ -30,7 +30,9 @@ build_container () {
     echo "Getting Docker Hub credentials from secrets manager"
     DOCKER_HUB_USER=`aws secretsmanager get-secret-value --secret-id ${DOCKER_HUB_CREDENTIALS_SECRET_ID} | jq -r ".SecretString" | jq -r ".dockerId"`
     DOCKER_HUB_PASSWORD=`aws secretsmanager get-secret-value --secret-id ${DOCKER_HUB_CREDENTIALS_SECRET_ID} | jq -r ".SecretString" | jq -r ".dockerId"`
+
     echo "Logging into Docker Hub as user ${DOCKER_HUB_USER}"
+    echo "(this is necessary because all CodeBuild processes appear to come from a limited set of IP's, and Docker Hub now rate limits requests, unless they come from a logged-in Docker Hub user)"
     docker login -u ${DOCKER_HUB_USER} -p ${DOCKER_HUB_PASSWORD}
 
     docker build --no-cache -t ${IMAGE_TAG} ${CONTEXT_DIR}
@@ -42,7 +44,10 @@ build_container () {
     docker tag ${IMAGE_TAG} ${LATEST_TAG}
 
     echo "Docker login to AWS ECR"
-    aws ecr get-login-password | docker login -u AWS --password-stdin ${REGISTRY_SERVER}
+    # We can't use docker login --password-stdin within a CodeBuild
+    # process, so we pass in the password using -p instead
+    echo ECR_PASSWORD=`aws ecr get-login-password`
+    docker login -u AWS -p ${ECR_PASSWORD}
     
     echo "Pushing images"
     docker push ${SHORT_TAG}
