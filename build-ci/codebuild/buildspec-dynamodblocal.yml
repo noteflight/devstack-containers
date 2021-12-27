@@ -3,4 +3,4 @@ version: 0.2
 phases:
   build:
     commands:
-      - build-ci/build-nf-devstack-dynamodblocal
+      - build-ci/bin/build-nf-devstack-dynamodblocal
