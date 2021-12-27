@@ -25,35 +25,40 @@ build_container () {
     LATEST_TAG="${REPO_URL}:latest"
     DOCKER_HUB_CREDENTIALS_SECRET_ID=dockerhub/account/arista
     
-    echo "Building container ${IMAGE_TAG}, branch ${GIT_BRANCH}, commit ${GIT_COMMIT} (short ${GIT_SHORT_COMMIT})"
+    echo "** Building container ${IMAGE_TAG}, branch ${GIT_BRANCH}, commit ${GIT_COMMIT} (short ${GIT_SHORT_COMMIT})"
 
-    echo "Getting Docker Hub credentials from secrets manager"
+    echo "** Getting Docker Hub credentials from secrets manager"
     aws secretsmanager get-secret-value --secret-id ${DOCKER_HUB_CREDENTIALS_SECRET_ID} > /tmp/dockerHubSecret.json
     DOCKER_HUB_USER=`cat /tmp/dockerHubSecret.json | jq -r ".SecretString" | jq -r ".dockerId"`
     DOCKER_HUB_PASSWORD=`cat /tmp/dockerHubSecret.json | jq -r ".SecretString" | jq -r ".password"`
     rm /tmp/dockerHubSecret.json
 
-    echo "Logging into Docker Hub as user ${DOCKER_HUB_USER}"
-    echo "(this is necessary because all CodeBuild processes appear to come from a limited set of IP's, and Docker Hub now rate limits requests, unless they come from a logged-in Docker Hub user)"
-    echo "(ignore docker's warnings about --password - CodeBuild runs in a container with an ephemeral filesystem)"
+    echo "** Logging into Docker Hub as user ${DOCKER_HUB_USER}"
+    echo "  (this is necessary because all CodeBuild processes appear to come from a limited set of IP's, and Docker Hub now rate limits requests, unless they come from a logged-in Docker Hub user)"
+    echo "  (ignore docker's warnings about --password - CodeBuild runs in a container with an ephemeral filesystem)"
     docker login -u ${DOCKER_HUB_USER} -p ${DOCKER_HUB_PASSWORD}
 
     docker build --no-cache -t ${IMAGE_TAG} ${CONTEXT_DIR}
-    echo "Tagging as ${SHORT_TAG}"
+    echo "** Tagging as ${SHORT_TAG}"
     docker tag ${IMAGE_TAG} ${SHORT_TAG}
-    echo "Tagging as ${LONG_TAG}"
+    echo "** Tagging as ${LONG_TAG}"
     docker tag ${IMAGE_TAG} ${LONG_TAG}
-    echo "Tagging as ${LATEST_TAG}"
+    echo "** Tagging as ${LATEST_TAG}"
     docker tag ${IMAGE_TAG} ${LATEST_TAG}
 
-    echo "Docker login to AWS ECR"
+    echo "** Docker login to AWS ECR"
     # We can't use docker login --password-stdin within a CodeBuild
     # process, so we pass in the password using -p instead
     ECR_PASSWORD=`aws ecr get-login-password`
     docker login -u AWS -p ${ECR_PASSWORD} ${REGISTRY_SERVER}
     
-    echo "Pushing images"
+    echo "** Pushing images"
+    echo "** Pushing ${SHORT_TAG}"
     docker push ${SHORT_TAG}
+    echo "** Pushing ${LONG_TAG}"
     docker push ${LONG_TAG}
+    echo "** Pushing ${LATEST_TAG}"
     docker push ${LATEST_TAG}
+
+    echo "Build complete"
 }
