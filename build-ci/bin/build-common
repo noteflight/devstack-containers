@@ -38,6 +38,7 @@ build_container () {
     echo "  (ignore docker's warnings about --password - CodeBuild runs in a container with an ephemeral filesystem)"
     docker login -u ${DOCKER_HUB_USER} -p ${DOCKER_HUB_PASSWORD}
 
+    echo "** Building image ${IMAGE_TAG} from context ${CONTEXT_DIR}"
     docker build --no-cache -t ${IMAGE_TAG} ${CONTEXT_DIR}
     echo "** Tagging as ${SHORT_TAG}"
     docker tag ${IMAGE_TAG} ${SHORT_TAG}
