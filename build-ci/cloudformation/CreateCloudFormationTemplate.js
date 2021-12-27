@@ -89,6 +89,7 @@ function addIAMRole(Resources, Outputs, containers) {
                   "ecr:InitiateLayerUpload",
                   "ecr:PutImage",
                   "ecr:UploadLayerPart",
+                  "ecr:GetAuthorizationToken",
                 ],
                 Resource: containers.map(container=>Arn(`Repository${container}`))
               },
