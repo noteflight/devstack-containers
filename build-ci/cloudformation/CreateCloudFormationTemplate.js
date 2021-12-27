@@ -89,9 +89,17 @@ function addIAMRole(Resources, Outputs, containers) {
                   "ecr:InitiateLayerUpload",
                   "ecr:PutImage",
                   "ecr:UploadLayerPart",
-                  "ecr:GetAuthorizationToken",
                 ],
                 Resource: containers.map(container=>Arn(`Repository${container}`))
+              },
+              // Allow docker login with ECR
+              {
+                Sid: "AllowECRLogin",
+                Effect: "Allow",
+                Action: [
+                  "ecr:GetAuthorizationToken",
+                ],
+                Resource: "*"
               },
               // Allow access to the DockerHub account credentials
               {

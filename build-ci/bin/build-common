@@ -48,7 +48,7 @@ build_container () {
     echo "Docker login to AWS ECR"
     # We can't use docker login --password-stdin within a CodeBuild
     # process, so we pass in the password using -p instead
-    echo ECR_PASSWORD=`aws ecr get-login-password`
+    ECR_PASSWORD=`aws ecr get-login-password`
     docker login -u AWS -p ${ECR_PASSWORD}
     
     echo "Pushing images"

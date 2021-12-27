@@ -46,6 +46,14 @@
                   ]
                 },
                 {
+                  "Sid": "AllowECRLogin",
+                  "Effect": "Allow",
+                  "Action": [
+                    "ecr:GetAuthorizationToken"
+                  ],
+                  "Resource": "*"
+                },
+                {
                   "Sid": "AllowDockerHubSecret",
                   "Effect": "Allow",
                   "Action": [
