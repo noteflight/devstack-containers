@@ -28,8 +28,10 @@ build_container () {
     echo "Building container ${IMAGE_TAG}, branch ${GIT_BRANCH}, commit ${GIT_COMMIT} (short ${GIT_SHORT_COMMIT})"
 
     echo "Getting Docker Hub credentials from secrets manager"
-    DOCKER_HUB_USER=`aws secretsmanager get-secret-value --secret-id ${DOCKER_HUB_CREDENTIALS_SECRET_ID} | jq -r ".SecretString" | jq -r ".dockerId"`
-    DOCKER_HUB_PASSWORD=`aws secretsmanager get-secret-value --secret-id ${DOCKER_HUB_CREDENTIALS_SECRET_ID} | jq -r ".SecretString" | jq -r ".dockerId"`
+    aws secretsmanager get-secret-value --secret-id ${DOCKER_HUB_CREDENTIALS_SECRET_ID} > /tmp/dockerHubSecret.json
+    DOCKER_HUB_USER=`cat /tmp/dockerHubSecret.json | jq -r ".SecretString" | jq -r ".dockerId"`
+    DOCKER_HUB_PASSWORD=`cat /tmp/dockerHubSecret.json | jq -r ".SecretString" | jq -r ".password"`
+    rm /tmp/dockerHubSecret.json
 
     echo "Logging into Docker Hub as user ${DOCKER_HUB_USER}"
     echo "(this is necessary because all CodeBuild processes appear to come from a limited set of IP's, and Docker Hub now rate limits requests, unless they come from a logged-in Docker Hub user)"
