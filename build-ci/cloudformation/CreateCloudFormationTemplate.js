@@ -1,8 +1,11 @@
 
 // The ARN of the AWS secrets manager holding the credentials for
 // logging into DockerHub
-GITHUB_REPO = "https://github.com/noteflight/devstack-containers.git"
 DOCKER_HUB_CREDENTIALS_ARN = "arn:aws:secretsmanager:us-east-1:915434789528:secret:dockerhub/account/arista-bDIz6P"
+GITHUB_CONNECTION_ARN = "arn:aws:codestar-connections:us-east-1:915434789528:connection/f92a8a58-c747-49f9-9392-fdfd88444e30"
+GITHUB_REPO_NAME = "noteflight/devstack-containers"
+GITHUB_REPO = `https://github.com/${GITHUB_REPO_NAME}.git`
+GITHUB_BRANCH = "main"
 
 // Helper functions for generating common CF constructs
 function GetAtt(resource, attributeName) {
@@ -34,6 +37,9 @@ function generateSpec() {
   containers.forEach(container=>{
     addContainerComponents(Resources, Outputs, container)
   })
+
+  // Add the CodePipeline
+  addCodePipeline(Resources, Outputs, containers)
 
   return {Resources, Outputs}
 }
@@ -68,7 +74,14 @@ function addIAMRole(Resources, Outputs, containers) {
               Service: "codebuild.amazonaws.com"
             },
             Action: "sts:AssumeRole"
-          }
+          },
+          {
+            Effect: "Allow",
+            Principal: {
+              Service: "codepipeline.amazonaws.com"
+            },
+            Action: "sts:AssumeRole"
+          },
         ]
       },
       Policies: [
@@ -133,12 +146,21 @@ function addIAMRole(Resources, Outputs, containers) {
                   "s3:GetObject",
                   "s3:GetObjectVersion",
                   "s3:GetBucketAcl",
-                  "s3:GetBucketLocation"
+                  "s3:GetBucketLocation",
                 ],
                 Resource: [
                   Arn("BuildBucket"),
                 ],
               },
+
+              // Allow using CodeStar to read from GitHub
+              {
+                Effect: "Allow",
+                Action: [
+                  "codestar-connections:UseConnection"
+                ],
+                Resource: "*",
+              },              
             ]
           }
         }
@@ -148,7 +170,7 @@ function addIAMRole(Resources, Outputs, containers) {
 
   Outputs.BuildRoleArn = {
     Description: "The arn of the IAM role running the build",
-    Value: GetAtt("BuildRole", "Arn"),
+    Value: Arn("BuildRole"),
   }
 }
 
@@ -167,7 +189,7 @@ function addContainerComponents(Resources, Outputs, container) {
   }
   Outputs[`${repositoryResource}Arn`] = {
     Description: `The arn of the ECR containing the built ${container} images`,
-    Value: GetAtt(repositoryResource, "Arn"),
+    Value: Arn(repositoryResource),
   }
 
   // Add the CloudWatch logs Log Group
@@ -186,7 +208,7 @@ function addContainerComponents(Resources, Outputs, container) {
   }
   Outputs[`${logGroupResource}Arn`] = {
     Description: `The arn of the CloudWatch LogGroup for the ${container} builds`,
-    Value: GetAtt(logGroupResource, "Arn"),
+    Value: Arn(logGroupResource),
   }
 
   // Add the Codebuild 
@@ -202,7 +224,7 @@ function addContainerComponents(Resources, Outputs, container) {
         GitCloneDepth: 1,
         BuildSpec: `build-ci/codebuild/buildspec-${container}.yml`,
       },
-      SourceVersion: "main",
+      SourceVersion: GITHUB_BRANCH,
       Artifacts: {
         Type: "NO_ARTIFACTS"
       },
@@ -227,10 +249,10 @@ function addContainerComponents(Resources, Outputs, container) {
         S3Logs: {
           Status: "ENABLED",
           EncryptionDisabled: true,
-          Location: Join("/", [GetAtt("BuildBucket", "Arn"), "build-log"]),
+          Location: Join("/", [Arn("BuildBucket"), "build-log"]),
         }
       },
-      ServiceRole: GetAtt("BuildRole", "Arn"),
+      ServiceRole: Arn("BuildRole"),
     },
   }
   Outputs[codeBuildResource] = {
@@ -239,7 +261,79 @@ function addContainerComponents(Resources, Outputs, container) {
   }
   Outputs[`${codeBuildResource}Arn`] = {
     Description: `The arn of the CodeBuild project for the ${container} builds`,
-    Value: GetAtt(codeBuildResource, "Arn"),
+    Value: Arn(codeBuildResource),
+  }
+}
+
+function addCodePipeline(Resources, Outputs, containers) {
+  Resources.CodePipeline = {
+    Type: "AWS::CodePipeline::Pipeline",
+    Properties: {
+      Name: "devstack-containers",
+      ArtifactStore: {
+        Type: "S3",
+        Location: Ref("BuildBucket"),
+      },
+      RoleArn: Arn("BuildRole"),
+      Stages: [
+        {
+          Name: "Source",
+          Actions: [
+            {
+              Name: "Source",
+              ActionTypeId: {
+                Owner: "AWS",
+                Category: "Source",
+                Version: "1",
+                Provider: "CodeStarSourceConnection"
+              },
+              Configuration: {
+                FullRepositoryId: GITHUB_REPO_NAME,
+                ConnectionArn: GITHUB_CONNECTION_ARN,
+                BranchName: GITHUB_BRANCH,
+                OutputArtifactFormat: "CODE_ZIP"
+              },
+              OutputArtifacts: [
+                {
+                  Name: "SourceArtifact"
+                }
+              ],
+              Region: "us-east-1",
+            }
+          ]
+        },
+        {
+          Name: "Build",
+          Actions: containers.map(container=>{return {
+            Name: `Build-${container}`,
+            InputArtifacts: [
+              {
+                Name: "SourceArtifact"
+              }
+            ],
+            ActionTypeId: {
+              Owner: "AWS",
+              Category: "Build",
+              Version: "1",
+              Provider: "CodeBuild"
+            },
+            Configuration: {
+              ProjectName: Ref(`CodeBuild${container}`),
+            },
+            OutputArtifacts: [
+              {
+                Name: "BuildArtifact"
+              }
+            ],
+            Region: "us-east-1",
+          }}),
+        }
+      ]
+    }
+  }
+  Outputs.CodePipeline = {
+    Description: `The CodePipeline for building the containers`,
+    Value: Ref("CodePipeline"),
   }
 }
 

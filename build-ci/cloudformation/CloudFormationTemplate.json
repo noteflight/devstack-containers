@@ -15,6 +15,13 @@
                 "Service": "codebuild.amazonaws.com"
               },
               "Action": "sts:AssumeRole"
+            },
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codepipeline.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
             }
           ]
         },
@@ -85,11 +92,7 @@
                 {
                   "Effect": "Allow",
                   "Action": [
-                    "s3:PutObject",
-                    "s3:GetObject",
-                    "s3:GetObjectVersion",
-                    "s3:GetBucketAcl",
-                    "s3:GetBucketLocation"
+                    "s3:*"
                   ],
                   "Resource": [
                     {
@@ -99,6 +102,13 @@
                       ]
                     }
                   ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "codestar-connections:UseConnection"
+                  ],
+                  "Resource": "*"
                 }
               ]
             }
@@ -176,6 +186,82 @@
           ]
         }
       }
+    },
+    "CodePipeline": {
+      "Type": "AWS::CodePipeline::Pipeline",
+      "Properties": {
+        "Name": "devstack-containers",
+        "ArtifactStore": {
+          "Type": "S3",
+          "Location": {
+            "Ref": "BuildBucket"
+          }
+        },
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "BuildRole",
+            "Arn"
+          ]
+        },
+        "Stages": [
+          {
+            "Name": "Source",
+            "Actions": [
+              {
+                "Name": "Source",
+                "ActionTypeId": {
+                  "Owner": "AWS",
+                  "Category": "Source",
+                  "Version": "1",
+                  "Provider": "CodeStarSourceConnection"
+                },
+                "Configuration": {
+                  "FullRepositoryId": "noteflight/devstack-containers",
+                  "ConnectionArn": "arn:aws:codestar-connections:us-east-1:915434789528:connection/f92a8a58-c747-49f9-9392-fdfd88444e30",
+                  "BranchName": "main",
+                  "OutputArtifactFormat": "CODE_ZIP"
+                },
+                "OutputArtifacts": [
+                  {
+                    "Name": "SourceArtifact"
+                  }
+                ],
+                "Region": "us-east-1"
+              }
+            ]
+          },
+          {
+            "Name": "Build",
+            "Actions": [
+              {
+                "Name": "Build-dynamodblocal",
+                "InputArtifacts": [
+                  {
+                    "Name": "SourceArtifact"
+                  }
+                ],
+                "ActionTypeId": {
+                  "Owner": "AWS",
+                  "Category": "Build",
+                  "Version": "1",
+                  "Provider": "CodeBuild"
+                },
+                "Configuration": {
+                  "ProjectName": {
+                    "Ref": "CodeBuilddynamodblocal"
+                  }
+                },
+                "OutputArtifacts": [
+                  {
+                    "Name": "BuildArtifact"
+                  }
+                ],
+                "Region": "us-east-1"
+              }
+            ]
+          }
+        ]
+      }
     }
   },
   "Outputs": {
@@ -246,6 +332,12 @@
           "CodeBuilddynamodblocal",
           "Arn"
         ]
+      }
+    },
+    "CodePipeline": {
+      "Description": "The CodePipeline for building the containers",
+      "Value": {
+        "Ref": "CodePipeline"
       }
     }
   }
