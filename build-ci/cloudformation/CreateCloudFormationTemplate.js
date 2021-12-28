@@ -24,7 +24,11 @@ function generateSpec() {
   const Resources = {}
   const Outputs = {}
 
-  const containers = ["dynamodblocal"]
+  const containers = [
+    "shell",
+    "dynamodblocal",
+    "elasticsearch",
+  ]
 
   // Add the S3 bucket for storing build logs
   addBuildBucket(Resources, Outputs)
@@ -368,8 +372,8 @@ function addCodePipeline(Resources, Outputs, containers) {
         {
           Name: "Build",
           Actions: containers.map(container=>{return {
-            Name: `Build-${container}`,
-            Namespace: "BuildVariables",
+            Name: `Build${container}`,
+            Namespace: `BuildVariables${container}`,
             Region: "us-east-1",
             InputArtifacts: [
               {
@@ -394,7 +398,7 @@ function addCodePipeline(Resources, Outputs, containers) {
             },
             OutputArtifacts: [
               {
-                Name: "BuildArtifact"
+                Name: `BuildArtifact${container}`
               }
             ],
           }}),

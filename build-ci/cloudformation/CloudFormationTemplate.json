@@ -39,7 +39,19 @@
                   "Resource": [
                     {
                       "Fn::GetAtt": [
+                        "Repositoryshell",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::GetAtt": [
                         "Repositorydynamodblocal",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::GetAtt": [
+                        "Repositoryelasticsearch",
                         "Arn"
                       ]
                     }
@@ -76,7 +88,19 @@
                   "Resource": [
                     {
                       "Fn::GetAtt": [
+                        "CloudWatchLogGroupshell",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::GetAtt": [
                         "CloudWatchLogGroupdynamodblocal",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::GetAtt": [
+                        "CloudWatchLogGroupelasticsearch",
                         "Arn"
                       ]
                     }
@@ -184,7 +208,19 @@
                   "Resource": [
                     {
                       "Fn::GetAtt": [
+                        "CodeBuildshell",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::GetAtt": [
                         "CodeBuilddynamodblocal",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::GetAtt": [
+                        "CodeBuildelasticsearch",
                         "Arn"
                       ]
                     }
@@ -194,6 +230,75 @@
             }
           }
         ]
+      }
+    },
+    "Repositoryshell": {
+      "Type": "AWS::ECR::Repository",
+      "Properties": {
+        "RepositoryName": "nf-devstack-shell"
+      }
+    },
+    "CloudWatchLogGroupshell": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/codebuild/devstack-shell",
+        "RetentionInDays": 180
+      }
+    },
+    "CodeBuildshell": {
+      "Type": "AWS::CodeBuild::Project",
+      "Properties": {
+        "Name": "devstack-shell",
+        "Description": "Builds the devstack-shell Docker image and pushes it to the nf-devstack-shell ECR repository",
+        "Source": {
+          "Type": "CODEPIPELINE",
+          "BuildSpec": "build-ci/codebuild/buildspec-shell.yml"
+        },
+        "SourceVersion": "main",
+        "Artifacts": {
+          "Type": "CODEPIPELINE"
+        },
+        "Cache": {
+          "Type": "NO_CACHE"
+        },
+        "Environment": {
+          "Type": "LINUX_CONTAINER",
+          "Image": "aws/codebuild/standard:4.0",
+          "ImagePullCredentialsType": "CODEBUILD",
+          "ComputeType": "BUILD_GENERAL1_SMALL",
+          "PrivilegedMode": true
+        },
+        "TimeoutInMinutes": 60,
+        "LogsConfig": {
+          "CloudWatchLogs": {
+            "Status": "ENABLED",
+            "GroupName": "/aws/codebuild/devstack-shell"
+          },
+          "S3Logs": {
+            "Status": "ENABLED",
+            "EncryptionDisabled": true,
+            "Location": {
+              "Fn::Join": [
+                "/",
+                [
+                  {
+                    "Fn::GetAtt": [
+                      "BuildBucket",
+                      "Arn"
+                    ]
+                  },
+                  "build-log"
+                ]
+              ]
+            }
+          }
+        },
+        "ServiceRole": {
+          "Fn::GetAtt": [
+            "CodeBuildRole",
+            "Arn"
+          ]
+        }
       }
     },
     "Repositorydynamodblocal": {
@@ -237,6 +342,75 @@
           "CloudWatchLogs": {
             "Status": "ENABLED",
             "GroupName": "/aws/codebuild/devstack-dynamodblocal"
+          },
+          "S3Logs": {
+            "Status": "ENABLED",
+            "EncryptionDisabled": true,
+            "Location": {
+              "Fn::Join": [
+                "/",
+                [
+                  {
+                    "Fn::GetAtt": [
+                      "BuildBucket",
+                      "Arn"
+                    ]
+                  },
+                  "build-log"
+                ]
+              ]
+            }
+          }
+        },
+        "ServiceRole": {
+          "Fn::GetAtt": [
+            "CodeBuildRole",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "Repositoryelasticsearch": {
+      "Type": "AWS::ECR::Repository",
+      "Properties": {
+        "RepositoryName": "nf-devstack-elasticsearch"
+      }
+    },
+    "CloudWatchLogGroupelasticsearch": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/codebuild/devstack-elasticsearch",
+        "RetentionInDays": 180
+      }
+    },
+    "CodeBuildelasticsearch": {
+      "Type": "AWS::CodeBuild::Project",
+      "Properties": {
+        "Name": "devstack-elasticsearch",
+        "Description": "Builds the devstack-elasticsearch Docker image and pushes it to the nf-devstack-elasticsearch ECR repository",
+        "Source": {
+          "Type": "CODEPIPELINE",
+          "BuildSpec": "build-ci/codebuild/buildspec-elasticsearch.yml"
+        },
+        "SourceVersion": "main",
+        "Artifacts": {
+          "Type": "CODEPIPELINE"
+        },
+        "Cache": {
+          "Type": "NO_CACHE"
+        },
+        "Environment": {
+          "Type": "LINUX_CONTAINER",
+          "Image": "aws/codebuild/standard:4.0",
+          "ImagePullCredentialsType": "CODEBUILD",
+          "ComputeType": "BUILD_GENERAL1_SMALL",
+          "PrivilegedMode": true
+        },
+        "TimeoutInMinutes": 60,
+        "LogsConfig": {
+          "CloudWatchLogs": {
+            "Status": "ENABLED",
+            "GroupName": "/aws/codebuild/devstack-elasticsearch"
           },
           "S3Logs": {
             "Status": "ENABLED",
@@ -313,8 +487,35 @@
             "Name": "Build",
             "Actions": [
               {
-                "Name": "Build-dynamodblocal",
-                "Namespace": "BuildVariables",
+                "Name": "Buildshell",
+                "Namespace": "BuildVariablesshell",
+                "Region": "us-east-1",
+                "InputArtifacts": [
+                  {
+                    "Name": "SourceArtifact"
+                  }
+                ],
+                "ActionTypeId": {
+                  "Owner": "AWS",
+                  "Category": "Build",
+                  "Version": "1",
+                  "Provider": "CodeBuild"
+                },
+                "Configuration": {
+                  "ProjectName": {
+                    "Ref": "CodeBuildshell"
+                  },
+                  "EnvironmentVariables": "[{\"name\":\"GIT_COMMIT\",\"value\":\"#{SourceVariables.CommitId}\"},{\"name\":\"GIT_BRANCH\",\"value\":\"#{SourceVariables.BranchName}\"}]"
+                },
+                "OutputArtifacts": [
+                  {
+                    "Name": "BuildArtifactshell"
+                  }
+                ]
+              },
+              {
+                "Name": "Builddynamodblocal",
+                "Namespace": "BuildVariablesdynamodblocal",
                 "Region": "us-east-1",
                 "InputArtifacts": [
                   {
@@ -335,7 +536,34 @@
                 },
                 "OutputArtifacts": [
                   {
-                    "Name": "BuildArtifact"
+                    "Name": "BuildArtifactdynamodblocal"
+                  }
+                ]
+              },
+              {
+                "Name": "Buildelasticsearch",
+                "Namespace": "BuildVariableselasticsearch",
+                "Region": "us-east-1",
+                "InputArtifacts": [
+                  {
+                    "Name": "SourceArtifact"
+                  }
+                ],
+                "ActionTypeId": {
+                  "Owner": "AWS",
+                  "Category": "Build",
+                  "Version": "1",
+                  "Provider": "CodeBuild"
+                },
+                "Configuration": {
+                  "ProjectName": {
+                    "Ref": "CodeBuildelasticsearch"
+                  },
+                  "EnvironmentVariables": "[{\"name\":\"GIT_COMMIT\",\"value\":\"#{SourceVariables.CommitId}\"},{\"name\":\"GIT_BRANCH\",\"value\":\"#{SourceVariables.BranchName}\"}]"
+                },
+                "OutputArtifacts": [
+                  {
+                    "Name": "BuildArtifactelasticsearch"
                   }
                 ]
               }
@@ -375,6 +603,51 @@
       "Value": {
         "Fn::GetAtt": [
           "CodePipelineRole",
+          "Arn"
+        ]
+      }
+    },
+    "Repositoryshell": {
+      "Description": "The ECR containing the built shell images",
+      "Value": {
+        "Ref": "Repositoryshell"
+      }
+    },
+    "RepositoryshellArn": {
+      "Description": "The arn of the ECR containing the built shell images",
+      "Value": {
+        "Fn::GetAtt": [
+          "Repositoryshell",
+          "Arn"
+        ]
+      }
+    },
+    "CloudWatchLogGroupshell": {
+      "Description": "The CloudWatch LogGroup for the shell builds",
+      "Value": {
+        "Ref": "CloudWatchLogGroupshell"
+      }
+    },
+    "CloudWatchLogGroupshellArn": {
+      "Description": "The arn of the CloudWatch LogGroup for the shell builds",
+      "Value": {
+        "Fn::GetAtt": [
+          "CloudWatchLogGroupshell",
+          "Arn"
+        ]
+      }
+    },
+    "CodeBuildshell": {
+      "Description": "The CodeBuild project for the shell builds",
+      "Value": {
+        "Ref": "CodeBuildshell"
+      }
+    },
+    "CodeBuildshellArn": {
+      "Description": "The arn of the CodeBuild project for the shell builds",
+      "Value": {
+        "Fn::GetAtt": [
+          "CodeBuildshell",
           "Arn"
         ]
       }
@@ -420,6 +693,51 @@
       "Value": {
         "Fn::GetAtt": [
           "CodeBuilddynamodblocal",
+          "Arn"
+        ]
+      }
+    },
+    "Repositoryelasticsearch": {
+      "Description": "The ECR containing the built elasticsearch images",
+      "Value": {
+        "Ref": "Repositoryelasticsearch"
+      }
+    },
+    "RepositoryelasticsearchArn": {
+      "Description": "The arn of the ECR containing the built elasticsearch images",
+      "Value": {
+        "Fn::GetAtt": [
+          "Repositoryelasticsearch",
+          "Arn"
+        ]
+      }
+    },
+    "CloudWatchLogGroupelasticsearch": {
+      "Description": "The CloudWatch LogGroup for the elasticsearch builds",
+      "Value": {
+        "Ref": "CloudWatchLogGroupelasticsearch"
+      }
+    },
+    "CloudWatchLogGroupelasticsearchArn": {
+      "Description": "The arn of the CloudWatch LogGroup for the elasticsearch builds",
+      "Value": {
+        "Fn::GetAtt": [
+          "CloudWatchLogGroupelasticsearch",
+          "Arn"
+        ]
+      }
+    },
+    "CodeBuildelasticsearch": {
+      "Description": "The CodeBuild project for the elasticsearch builds",
+      "Value": {
+        "Ref": "CodeBuildelasticsearch"
+      }
+    },
+    "CodeBuildelasticsearchArn": {
+      "Description": "The arn of the CodeBuild project for the elasticsearch builds",
+      "Value": {
+        "Fn::GetAtt": [
+          "CodeBuildelasticsearch",
           "Arn"
         ]
       }
