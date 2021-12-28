@@ -246,7 +246,7 @@ function addContainerComponents(Resources, Outputs, container) {
   Resources[repositoryResource] = {
     Type : "AWS::ECR::Repository",
     Properties: {
-      RepositoryName: `nf-devstack-${container}`
+      RepositoryName: `nf-devstack-${container}`,
     }
   }
   Outputs[repositoryResource] = {
@@ -359,8 +359,7 @@ function addCodePipeline(Resources, Outputs, containers) {
                 ConnectionArn: GITHUB_CONNECTION_ARN,
                 BranchName: GITHUB_BRANCH,
                 OutputArtifactFormat: "CODE_ZIP",
-                //DetectChanges: true,
-                DetectChanges: false,
+                DetectChanges: true,
               },
               OutputArtifacts: [
                 {
@@ -411,36 +410,6 @@ function addCodePipeline(Resources, Outputs, containers) {
   Outputs.CodePipeline = {
     Description: `The CodePipeline for building the containers`,
     Value: Ref("CodePipeline"),
-  }
-
-  // Create the Webhook for GitHub notifications of source code
-  // changes
-  Resources.CodePipelineWebhook = {
-    Type: "AWS::CodePipeline::Webhook",
-    Properties: {
-      Authentication: "GITHUB_HMAC",
-      AuthenticationConfiguration: {
-        // FIXME - the secret token should go into a secrets vault  
-        SecretToken: "TestSecret1234",
-      },
-      TargetPipeline: Ref("CodePipeline"),
-      TargetPipelineVersion: GetAtt("CodePipeline", "Version"),
-      TargetAction: "Source",
-      Filters: [
-        {
-          JsonPath: "$.ref",
-          MatchEquals: "refs/heads/{Branch}"
-        }
-      ],
-    },
-  }
-  Outputs.CodePipelineWebhook = {
-    Description: `The CodePipelineWebhook for triggering builds`,
-    Value: Ref("CodePipelineWebhook"),
-  }
-  Outputs.CodePipelineWebhookUrl = {
-    Description: `The URL of the CodePipelineWebhook for triggering builds`,
-    Value: GetAtt("CodePipelineWebhook", "Url"),
   }
 }
 

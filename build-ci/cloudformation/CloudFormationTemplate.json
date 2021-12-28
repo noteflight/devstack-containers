@@ -471,7 +471,7 @@
                   "ConnectionArn": "arn:aws:codestar-connections:us-east-1:915434789528:connection/f92a8a58-c747-49f9-9392-fdfd88444e30",
                   "BranchName": "main",
                   "OutputArtifactFormat": "CODE_ZIP",
-                  "DetectChanges": false
+                  "DetectChanges": true
                 },
                 "OutputArtifacts": [
                   {
@@ -566,31 +566,6 @@
                 ]
               }
             ]
-          }
-        ]
-      }
-    },
-    "CodePipelineWebhook": {
-      "Type": "AWS::CodePipeline::Webhook",
-      "Properties": {
-        "Authentication": "GITHUB_HMAC",
-        "AuthenticationConfiguration": {
-          "SecretToken": "TestSecret1234"
-        },
-        "TargetPipeline": {
-          "Ref": "CodePipeline"
-        },
-        "TargetPipelineVersion": {
-          "Fn::GetAtt": [
-            "CodePipeline",
-            "Version"
-          ]
-        },
-        "TargetAction": "Source",
-        "Filters": [
-          {
-            "JsonPath": "$.ref",
-            "MatchEquals": "refs/heads/{Branch}"
           }
         ]
       }
@@ -769,21 +744,6 @@
       "Description": "The CodePipeline for building the containers",
       "Value": {
         "Ref": "CodePipeline"
-      }
-    },
-    "CodePipelineWebhook": {
-      "Description": "The CodePipelineWebhook for triggering builds",
-      "Value": {
-        "Ref": "CodePipelineWebhook"
-      }
-    },
-    "CodePipelineWebhookUrl": {
-      "Description": "The URL of the CodePipelineWebhook for triggering builds",
-      "Value": {
-        "Fn::GetAtt": [
-          "CodePipelineWebhook",
-          "Url"
-        ]
       }
     }
   }
