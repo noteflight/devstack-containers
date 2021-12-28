@@ -49,19 +49,17 @@ function addBuildBucket(Resources, Outputs) {
       Type: "AWS::S3::Bucket",
   }
   Outputs.BuildBucket = {
-    Description: "The bucket containing build results and logs",
+    Description: "The bucket containing codepipeline artifacts, build results, and logs",
     Value: Ref("BuildBucket"),
   }
   Outputs.BuildBucketArn = {
-    Description: "The arn of the bucket containing build results and logs",
+    Description: "The arn of the bucket containing codepipeline artifacts, build results, and logs",
     Value: Arn("BuildBucket"),
   }
 }
 
 function addIAMRole(Resources, Outputs, containers) {
-  // Create the IAM role that CodeBuild will use.  It needs the
-  // ability to write to the ECR repositories, and to read the docker
-  // hub secret
+  // Create the IAM role that CodePipeline and CodeBuild will use
   Resources.BuildRole = {
     Type: "AWS::IAM::Role",
     Properties: {
