@@ -127,7 +127,7 @@ function addIAMRole(Resources, Outputs, containers) {
                 ]
               },
 
-              // Permissions for writing logs to CloudWatch and S3
+              // Permissions for writing logs to CloudWatch
               {
                 Effect: "Allow",
                 Resource: containers.map(container=>Arn(`CloudWatchLogGroup${container}`)),
@@ -137,6 +137,8 @@ function addIAMRole(Resources, Outputs, containers) {
                   "logs:PutLogEvents"
                 ]
               },
+
+              // Permissions for accessing the S3 build bucket
               {
                 Effect: "Allow",            
                 Action: [
@@ -151,7 +153,7 @@ function addIAMRole(Resources, Outputs, containers) {
                 ],
               },
 
-              // Allow using CodeStar to read from GitHub
+              // Allow reading from GitHub using CodeStar
               {
                 Effect: "Allow",
                 Action: [
