@@ -252,7 +252,7 @@
         "Description": "Builds the devstack-shell Docker image and pushes it to the nf-devstack-shell ECR repository",
         "Source": {
           "Type": "CODEPIPELINE",
-          "BuildSpec": "build-ci/codebuild/buildspec-shell.yml"
+          "BuildSpec": "build-ci/codebuild/buildspec.yml"
         },
         "SourceVersion": "main",
         "Artifacts": {
@@ -321,7 +321,7 @@
         "Description": "Builds the devstack-dynamodblocal Docker image and pushes it to the nf-devstack-dynamodblocal ECR repository",
         "Source": {
           "Type": "CODEPIPELINE",
-          "BuildSpec": "build-ci/codebuild/buildspec-dynamodblocal.yml"
+          "BuildSpec": "build-ci/codebuild/buildspec.yml"
         },
         "SourceVersion": "main",
         "Artifacts": {
@@ -390,7 +390,7 @@
         "Description": "Builds the devstack-elasticsearch Docker image and pushes it to the nf-devstack-elasticsearch ECR repository",
         "Source": {
           "Type": "CODEPIPELINE",
-          "BuildSpec": "build-ci/codebuild/buildspec-elasticsearch.yml"
+          "BuildSpec": "build-ci/codebuild/buildspec.yml"
         },
         "SourceVersion": "main",
         "Artifacts": {
@@ -505,7 +505,7 @@
                   "ProjectName": {
                     "Ref": "CodeBuildshell"
                   },
-                  "EnvironmentVariables": "[{\"name\":\"GIT_COMMIT\",\"value\":\"#{SourceVariables.CommitId}\"},{\"name\":\"GIT_BRANCH\",\"value\":\"#{SourceVariables.BranchName}\"}]"
+                  "EnvironmentVariables": "[{\"name\":\"GIT_COMMIT\",\"value\":\"#{SourceVariables.CommitId}\"},{\"name\":\"GIT_BRANCH\",\"value\":\"#{SourceVariables.BranchName}\"},{\"name\":\"CONTAINER_NAME\",\"value\":\"shell\"}]"
                 },
                 "OutputArtifacts": [
                   {
@@ -532,7 +532,7 @@
                   "ProjectName": {
                     "Ref": "CodeBuilddynamodblocal"
                   },
-                  "EnvironmentVariables": "[{\"name\":\"GIT_COMMIT\",\"value\":\"#{SourceVariables.CommitId}\"},{\"name\":\"GIT_BRANCH\",\"value\":\"#{SourceVariables.BranchName}\"}]"
+                  "EnvironmentVariables": "[{\"name\":\"GIT_COMMIT\",\"value\":\"#{SourceVariables.CommitId}\"},{\"name\":\"GIT_BRANCH\",\"value\":\"#{SourceVariables.BranchName}\"},{\"name\":\"CONTAINER_NAME\",\"value\":\"dynamodblocal\"}]"
                 },
                 "OutputArtifacts": [
                   {
@@ -559,7 +559,7 @@
                   "ProjectName": {
                     "Ref": "CodeBuildelasticsearch"
                   },
-                  "EnvironmentVariables": "[{\"name\":\"GIT_COMMIT\",\"value\":\"#{SourceVariables.CommitId}\"},{\"name\":\"GIT_BRANCH\",\"value\":\"#{SourceVariables.BranchName}\"}]"
+                  "EnvironmentVariables": "[{\"name\":\"GIT_COMMIT\",\"value\":\"#{SourceVariables.CommitId}\"},{\"name\":\"GIT_BRANCH\",\"value\":\"#{SourceVariables.BranchName}\"},{\"name\":\"CONTAINER_NAME\",\"value\":\"elasticsearch\"}]"
                 },
                 "OutputArtifacts": [
                   {
