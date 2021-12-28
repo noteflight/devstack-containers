@@ -419,7 +419,7 @@ function addCodePipeline(Resources, Outputs, containers) {
     Properties: {
       Authentication: "GITHUB_HMAC",
       AuthenticationConfiguration: {
-        // FIXME - the secret token should go into a secrets vault
+        // FIXME - the secret token should go into a secrets vault  
         SecretToken: "TestSecret1234",
       },
       TargetPipeline: Ref("CodePipeline"),
