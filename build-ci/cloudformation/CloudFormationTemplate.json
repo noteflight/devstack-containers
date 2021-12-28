@@ -215,14 +215,12 @@
         "Name": "devstack-dynamodblocal",
         "Description": "Builds the devstack-dynamodblocal Docker image and pushes it to the nf-devstack-dynamodblocal ECR repository",
         "Source": {
-          "Type": "GITHUB",
-          "Location": "https://github.com/noteflight/devstack-containers.git",
-          "GitCloneDepth": 1,
+          "Type": "CODEPIPELINE",
           "BuildSpec": "build-ci/codebuild/buildspec-dynamodblocal.yml"
         },
         "SourceVersion": "main",
         "Artifacts": {
-          "Type": "NO_ARTIFACTS"
+          "Type": "CODEPIPELINE"
         },
         "Cache": {
           "Type": "NO_CACHE"

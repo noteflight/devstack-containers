@@ -281,14 +281,12 @@ function addContainerComponents(Resources, Outputs, container) {
       Name: `devstack-${container}`,
       Description: `Builds the devstack-${container} Docker image and pushes it to the nf-devstack-${container} ECR repository`,
       Source: {
-        Type: "GITHUB",
-        Location: GITHUB_REPO,
-        GitCloneDepth: 1,
+        Type: "CODEPIPELINE",
         BuildSpec: `build-ci/codebuild/buildspec-${container}.yml`,
       },
       SourceVersion: GITHUB_BRANCH,
       Artifacts: {
-        Type: "NO_ARTIFACTS"
+        Type: "CODEPIPELINE",
       },
       Cache: {
         Type: "NO_CACHE"
