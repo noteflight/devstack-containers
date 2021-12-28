@@ -286,7 +286,7 @@ function addContainerComponents(Resources, Outputs, container) {
       Description: `Builds the devstack-${container} Docker image and pushes it to the nf-devstack-${container} ECR repository`,
       Source: {
         Type: "CODEPIPELINE",
-        BuildSpec: `build-ci/codebuild/buildspec-${container}.yml`,
+        BuildSpec: `build-ci/codebuild/buildspec.yml`,
       },
       SourceVersion: GITHUB_BRANCH,
       Artifacts: {
@@ -394,6 +394,7 @@ function addCodePipeline(Resources, Outputs, containers) {
               EnvironmentVariables: JSON.stringify([
                 {name: "GIT_COMMIT", value: "#{SourceVariables.CommitId}"},
                 {name: "GIT_BRANCH", value: "#{SourceVariables.BranchName}"},
+                {name: "CONTAINER_NAME", value: container},
               ]),
             },
             OutputArtifacts: [

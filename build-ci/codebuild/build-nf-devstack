@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# Build the docker image then push it to the ECR docker image
+# repository named "nf-devstack-<container name>".  The docker image
+# is built from the context directory at
+# .../containers/nf-devstack-<container name> and is expected to have
+# a Dockerfile at its root.
+#
+# The built image is given 3 tags:
+#
+#   latest
+#   branch-{branch name}
+#   branch-{branch name}-commit-{commit id}
+#
+# This expects the following environment variables to be set
+# (typically set by CodePipeline):
+#
+#   CONTAINER_NAME: the name of the container being built
+#   GIT_BRANCH: the name of the branch being built
+#   GIT_COMMIT: the full commit id of the commit being built
+
+# Get the directory of this script
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+CONTEXT_DIR="${DIR}/../../containers/nf-devstack-${CONTAINER_NAME}"
+IMAGE_NAME="nf-devstack-${CONTAINER_NAME}"
+REGISTRY_SERVER="915434789528.dkr.ecr.us-east-1.amazonaws.com"
+REPO_URL="${REGISTRY_SERVER}/${IMAGE_NAME}"
+SHORT_TAG="${REPO_URL}:branch-${GIT_BRANCH}"
+LONG_TAG="${REPO_URL}:branch-${GIT_BRANCH}-commit-${GIT_COMMIT}"
+LATEST_TAG="${REPO_URL}:latest"
+DOCKER_HUB_CREDENTIALS_SECRET_ID=dockerhub/account/arista
+    
+echo "** Building image ${IMAGE_NAME}, branch ${GIT_BRANCH}, commit ${GIT_COMMIT}"
+
+echo "** Getting Docker Hub credentials from secrets manager"
+aws secretsmanager get-secret-value --secret-id ${DOCKER_HUB_CREDENTIALS_SECRET_ID} > /tmp/dockerHubSecret.json
+DOCKER_HUB_USER=`cat /tmp/dockerHubSecret.json | jq -r ".SecretString" | jq -r ".dockerId"`
+DOCKER_HUB_PASSWORD=`cat /tmp/dockerHubSecret.json | jq -r ".SecretString" | jq -r ".password"`
+rm /tmp/dockerHubSecret.json
+
+echo "** Logging into Docker Hub as user ${DOCKER_HUB_USER}"
+echo "  (this is necessary because all CodeBuild processes appear to come from a limited set of IP's, and Docker Hub now rate limits requests, unless they come from a logged-in Docker Hub user)"
+echo "  (ignore docker's warnings about --password - CodeBuild runs in a container with an ephemeral filesystem)"
+docker login -u ${DOCKER_HUB_USER} -p ${DOCKER_HUB_PASSWORD}
+
+echo "** Building image ${IMAGE_NAME} from context ${CONTEXT_DIR}"
+docker build --no-cache -t ${IMAGE_NAME} ${CONTEXT_DIR}
+echo "** Tagging as ${SHORT_TAG}"
+docker tag ${IMAGE_NAME} ${SHORT_TAG}
+echo "** Tagging as ${LONG_TAG}"
+docker tag ${IMAGE_NAME} ${LONG_TAG}
+echo "** Tagging as ${LATEST_TAG}"
+docker tag ${IMAGE_NAME} ${LATEST_TAG}
+
+echo "** Docker login to AWS ECR"
+# We can't use docker login --password-stdin within a CodeBuild
+# process, so we pass in the password using -p instead
+ECR_PASSWORD=`aws ecr get-login-password`
+docker login -u AWS -p ${ECR_PASSWORD} ${REGISTRY_SERVER}
+    
+echo "** Pushing images"
+echo "** Pushing ${SHORT_TAG}"
+docker push ${SHORT_TAG}
+echo "** Pushing ${LONG_TAG}"
+docker push ${LONG_TAG}
+echo "** Pushing ${LATEST_TAG}"
+docker push ${LATEST_TAG}
+
+echo "Build complete"
