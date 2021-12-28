@@ -1,4 +1,3 @@
-
 // The ARN of the AWS secrets manager holding the credentials for
 // logging into DockerHub
 DOCKER_HUB_CREDENTIALS_ARN = "arn:aws:secretsmanager:us-east-1:915434789528:secret:dockerhub/account/arista-bDIz6P"
@@ -17,7 +16,7 @@ function Arn(resource) {
 function Ref(resource) {
   return {"Ref": resource}
 }
-function Join(delimiter, values) {
+function Join(values, delimiter = "") {
   return { "Fn::Join" : [ delimiter || "", values ] }
 }
 
@@ -30,8 +29,9 @@ function generateSpec() {
   // Add the S3 bucket for storing build logs
   addBuildBucket(Resources, Outputs)
 
-  // Create the IAM role
-  addIAMRole(Resources, Outputs, containers)
+  // Create the IAM roles
+  addCodeBuildIAMRole(Resources, Outputs, containers)
+  addCodePipelineIAMRole(Resources, Outputs, containers)
   
   // Add the components that are container-specific
   containers.forEach(container=>{
@@ -58,9 +58,9 @@ function addBuildBucket(Resources, Outputs) {
   }
 }
 
-function addIAMRole(Resources, Outputs, containers) {
+function addCodeBuildIAMRole(Resources, Outputs, containers) {
   // Create the IAM role that CodePipeline and CodeBuild will use
-  Resources.BuildRole = {
+  Resources.CodeBuildRole = {
     Type: "AWS::IAM::Role",
     Properties: {
       AssumeRolePolicyDocument: {
@@ -70,13 +70,6 @@ function addIAMRole(Resources, Outputs, containers) {
             Effect: "Allow",
             Principal: {
               Service: "codebuild.amazonaws.com"
-            },
-            Action: "sts:AssumeRole"
-          },
-          {
-            Effect: "Allow",
-            Principal: {
-              Service: "codepipeline.amazonaws.com"
             },
             Action: "sts:AssumeRole"
           },
@@ -103,6 +96,7 @@ function addIAMRole(Resources, Outputs, containers) {
                 ],
                 Resource: containers.map(container=>Arn(`Repository${container}`))
               },
+
               // Allow docker login with ECR
               {
                 Sid: "AllowECRLogin",
@@ -112,6 +106,7 @@ function addIAMRole(Resources, Outputs, containers) {
                 ],
                 Resource: "*"
               },
+
               // Allow access to the DockerHub account credentials
               {
                 Sid: "AllowDockerHubSecret",
@@ -138,7 +133,7 @@ function addIAMRole(Resources, Outputs, containers) {
                 ]
               },
 
-              // Permissions for accessing the S3 build bucket
+              // Permissions for writing logs to the S3 build bucket
               {
                 Effect: "Allow",            
                 Action: [
@@ -149,7 +144,77 @@ function addIAMRole(Resources, Outputs, containers) {
                   "s3:GetBucketLocation",
                 ],
                 Resource: [
+                  Join([Arn("BuildBucket"), "*"], "/"),
+                ],
+              },
+            ]
+          }
+        }
+      ]
+    },
+  }
+
+  Outputs.CodeBuildRoleArn = {
+    Description: "The arn of the IAM role running CodeBuild",
+    Value: Arn("CodeBuildRole"),
+  }
+}
+
+function addCodePipelineIAMRole(Resources, Outputs, containers) {
+  // Create the IAM role that CodePipeline and CodeBuild will use
+  Resources.CodePipelineRole = {
+    Type: "AWS::IAM::Role",
+    Properties: {
+      AssumeRolePolicyDocument: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Effect: "Allow",
+            Principal: {
+              Service: "codepipeline.amazonaws.com"
+            },
+            Action: "sts:AssumeRole"
+          },
+        ]
+      },
+      Policies: [
+        {
+          PolicyName: "DevstackContainersBuildRolePolicy",
+          PolicyDocument: {
+            Version: "2012-10-17",
+            Statement: [
+              // Permissions for writing logs to CloudWatch
+              /*
+              {
+                Effect: "Allow",
+                Resource: containers.map(container=>Arn(`CloudWatchLogGroup${container}`)),
+                Action: [
+                  "logs:CreateLogGroup",
+                  "logs:CreateLogStream",
+                  "logs:PutLogEvents"
+                ]
+              },
+              */
+
+              // Permissions for accessing the S3 build bucket
+              {
+                Effect: "Allow",            
+                Action: [
+                  "s3:*",
+                  /*
+                  "s3:PutObject",
+                  "s3:GetObject",
+                  "s3:GetObjectVersion",
+                  "s3:GetBucketAcl",
+                  "s3:GetBucketLocation",
+                  */
+                ],
+                Resource: [
+                  "*"
+                  /*
                   Arn("BuildBucket"),
+                  Join([Arn("BuildBucket"), "*"], "/"),
+                  */
                 ],
               },
 
@@ -161,6 +226,16 @@ function addIAMRole(Resources, Outputs, containers) {
                 ],
                 Resource: "*",
               },              
+
+              // Allow CodePipeline to start CodeBuild builds
+              {
+                Effect: "Allow",
+                Action: [
+                  "codebuild:StartBuild",
+                  "codebuild:BatchGetBuilds",
+                ],
+                Resource: containers.map(container=>Arn(`CodeBuild${container}`))
+              },              
             ]
           }
         }
@@ -168,9 +243,9 @@ function addIAMRole(Resources, Outputs, containers) {
     },
   }
 
-  Outputs.BuildRoleArn = {
-    Description: "The arn of the IAM role running the build",
-    Value: Arn("BuildRole"),
+  Outputs.CodePipelineRoleArn = {
+    Description: "The arn of the IAM role running CodePipeline",
+    Value: Arn("CodePipelineRole"),
   }
 }
 
@@ -211,7 +286,7 @@ function addContainerComponents(Resources, Outputs, container) {
     Value: Arn(logGroupResource),
   }
 
-  // Add the Codebuild 
+  // Add the CodeBuild 
   const codeBuildResource = `CodeBuild${container}`
   Resources[codeBuildResource] = {
     Type : "AWS::CodeBuild::Project",
@@ -249,10 +324,10 @@ function addContainerComponents(Resources, Outputs, container) {
         S3Logs: {
           Status: "ENABLED",
           EncryptionDisabled: true,
-          Location: Join("/", [Arn("BuildBucket"), "build-log"]),
+          Location: Join([Arn("BuildBucket"), "build-log"], "/"),
         }
       },
-      ServiceRole: Arn("BuildRole"),
+      ServiceRole: Arn("CodeBuildRole"),
     },
   }
   Outputs[codeBuildResource] = {
@@ -274,13 +349,17 @@ function addCodePipeline(Resources, Outputs, containers) {
         Type: "S3",
         Location: Ref("BuildBucket"),
       },
-      RoleArn: Arn("BuildRole"),
+      RoleArn: Arn("CodePipelineRole"),
       Stages: [
         {
           Name: "Source",
           Actions: [
             {
               Name: "Source",
+              Namespace: "SourceVariables",
+              Region: "us-east-1",
+              // Use the new (GitHub 2) "CodeStar" connection to
+              // github (supersedes the old OAuth-based connection)
               ActionTypeId: {
                 Owner: "AWS",
                 Category: "Source",
@@ -298,7 +377,6 @@ function addCodePipeline(Resources, Outputs, containers) {
                   Name: "SourceArtifact"
                 }
               ],
-              Region: "us-east-1",
             }
           ]
         },
@@ -306,11 +384,16 @@ function addCodePipeline(Resources, Outputs, containers) {
           Name: "Build",
           Actions: containers.map(container=>{return {
             Name: `Build-${container}`,
+            Namespace: "BuildVariables",
+            Region: "us-east-1",
             InputArtifacts: [
               {
                 Name: "SourceArtifact"
               }
             ],
+            // Run the CodeBuild action.  Currently it pushes the
+            // built images directly to ECR, so there is no separate
+            // "deploy" step
             ActionTypeId: {
               Owner: "AWS",
               Category: "Build",
@@ -319,13 +402,16 @@ function addCodePipeline(Resources, Outputs, containers) {
             },
             Configuration: {
               ProjectName: Ref(`CodeBuild${container}`),
+              EnvironmentVariables: JSON.stringify([
+                {name: "GIT_COMMIT", value: "#{SourceVariables.CommitId}"},
+                {name: "GIT_BRANCH", value: "#{SourceVariables.BranchName}"},
+              ]),
             },
             OutputArtifacts: [
               {
                 Name: "BuildArtifact"
               }
             ],
-            Region: "us-east-1",
           }}),
         }
       ]

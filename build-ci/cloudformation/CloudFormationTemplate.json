@@ -3,7 +3,7 @@
     "BuildBucket": {
       "Type": "AWS::S3::Bucket"
     },
-    "BuildRole": {
+    "CodeBuildRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -13,13 +13,6 @@
               "Effect": "Allow",
               "Principal": {
                 "Service": "codebuild.amazonaws.com"
-              },
-              "Action": "sts:AssumeRole"
-            },
-            {
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "codepipeline.amazonaws.com"
               },
               "Action": "sts:AssumeRole"
             }
@@ -92,15 +85,63 @@
                 {
                   "Effect": "Allow",
                   "Action": [
-                    "s3:*"
+                    "s3:PutObject",
+                    "s3:GetObject",
+                    "s3:GetObjectVersion",
+                    "s3:GetBucketAcl",
+                    "s3:GetBucketLocation"
                   ],
                   "Resource": [
                     {
-                      "Fn::GetAtt": [
-                        "BuildBucket",
-                        "Arn"
+                      "Fn::Join": [
+                        "/",
+                        [
+                          {
+                            "Fn::GetAtt": [
+                              "BuildBucket",
+                              "Arn"
+                            ]
+                          },
+                          "*"
+                        ]
                       ]
                     }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "CodePipelineRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codepipeline.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "DevstackContainersBuildRolePolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:*"
+                  ],
+                  "Resource": [
+                    "*"
                   ]
                 },
                 {
@@ -109,6 +150,21 @@
                     "codestar-connections:UseConnection"
                   ],
                   "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "codebuild:StartBuild",
+                    "codebuild:BatchGetBuilds"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "CodeBuilddynamodblocal",
+                        "Arn"
+                      ]
+                    }
+                  ]
                 }
               ]
             }
@@ -181,7 +237,7 @@
         },
         "ServiceRole": {
           "Fn::GetAtt": [
-            "BuildRole",
+            "CodeBuildRole",
             "Arn"
           ]
         }
@@ -199,7 +255,7 @@
         },
         "RoleArn": {
           "Fn::GetAtt": [
-            "BuildRole",
+            "CodePipelineRole",
             "Arn"
           ]
         },
@@ -209,6 +265,8 @@
             "Actions": [
               {
                 "Name": "Source",
+                "Namespace": "SourceVariables",
+                "Region": "us-east-1",
                 "ActionTypeId": {
                   "Owner": "AWS",
                   "Category": "Source",
@@ -225,8 +283,7 @@
                   {
                     "Name": "SourceArtifact"
                   }
-                ],
-                "Region": "us-east-1"
+                ]
               }
             ]
           },
@@ -235,6 +292,8 @@
             "Actions": [
               {
                 "Name": "Build-dynamodblocal",
+                "Namespace": "BuildVariables",
+                "Region": "us-east-1",
                 "InputArtifacts": [
                   {
                     "Name": "SourceArtifact"
@@ -249,14 +308,14 @@
                 "Configuration": {
                   "ProjectName": {
                     "Ref": "CodeBuilddynamodblocal"
-                  }
+                  },
+                  "EnvironmentVariables": "[{\"name\":\"GIT_COMMIT\",\"value\":\"#{SourceVariables.CommitId}\"},{\"name\":\"GIT_BRANCH\",\"value\":\"#{SourceVariables.BranchName}\"}]"
                 },
                 "OutputArtifacts": [
                   {
                     "Name": "BuildArtifact"
                   }
-                ],
-                "Region": "us-east-1"
+                ]
               }
             ]
           }
@@ -266,13 +325,13 @@
   },
   "Outputs": {
     "BuildBucket": {
-      "Description": "The bucket containing build results and logs",
+      "Description": "The bucket containing codepipeline artifacts, build results, and logs",
       "Value": {
         "Ref": "BuildBucket"
       }
     },
     "BuildBucketArn": {
-      "Description": "The arn of the bucket containing build results and logs",
+      "Description": "The arn of the bucket containing codepipeline artifacts, build results, and logs",
       "Value": {
         "Fn::GetAtt": [
           "BuildBucket",
@@ -280,11 +339,20 @@
         ]
       }
     },
-    "BuildRoleArn": {
-      "Description": "The arn of the IAM role running the build",
+    "CodeBuildRoleArn": {
+      "Description": "The arn of the IAM role running CodeBuild",
       "Value": {
         "Fn::GetAtt": [
-          "BuildRole",
+          "CodeBuildRole",
+          "Arn"
+        ]
+      }
+    },
+    "CodePipelineRoleArn": {
+      "Description": "The arn of the IAM role running CodePipeline",
+      "Value": {
+        "Fn::GetAtt": [
+          "CodePipelineRole",
           "Arn"
         ]
       }

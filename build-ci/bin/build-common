@@ -17,15 +17,16 @@ build_container () {
     IMAGE_TAG=$2
     REGISTRY_SERVER="915434789528.dkr.ecr.us-east-1.amazonaws.com"
     REPO_URL="${REGISTRY_SERVER}/${3}"
-    GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
-    GIT_COMMIT=`git rev-parse HEAD`
-    GIT_SHORT_COMMIT=`git rev-parse --short HEAD`
+    # These are now expected to be passed in from CodePipeline
+    #GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
+    #GIT_COMMIT=`git rev-parse HEAD`
+    #GIT_SHORT_COMMIT=`git rev-parse --short HEAD`
     SHORT_TAG="${REPO_URL}:branch-${GIT_BRANCH}"
-    LONG_TAG="${REPO_URL}:branch-${GIT_BRANCH}-commit-${GIT_SHORT_COMMIT}"
+    LONG_TAG="${REPO_URL}:branch-${GIT_BRANCH}-commit-${GIT_COMMIT}"
     LATEST_TAG="${REPO_URL}:latest"
     DOCKER_HUB_CREDENTIALS_SECRET_ID=dockerhub/account/arista
     
-    echo "** Building container ${IMAGE_TAG}, branch ${GIT_BRANCH}, commit ${GIT_COMMIT} (short ${GIT_SHORT_COMMIT})"
+    echo "** Building container ${IMAGE_TAG}, branch ${GIT_BRANCH}, commit ${GIT_COMMIT}"
 
     echo "** Getting Docker Hub credentials from secrets manager"
     aws secretsmanager get-secret-value --secret-id ${DOCKER_HUB_CREDENTIALS_SECRET_ID} > /tmp/dockerHubSecret.json
