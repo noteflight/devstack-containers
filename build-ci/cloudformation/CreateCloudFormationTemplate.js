@@ -259,7 +259,7 @@ function addContainerComponents(Resources, Outputs, container) {
   }
 
   // Add the CloudWatch logs Log Group
-  const logGroupName = `/aws/codebuild/devstack-${container}`
+  const logGroupName = `/aws/codebuild/devstack/${container}`
   const logGroupResource = `CloudWatchLogGroup${container}`
   Resources[logGroupResource] = {
     Type : "AWS::Logs::LogGroup",
@@ -372,8 +372,8 @@ function addCodePipeline(Resources, Outputs, containers) {
         {
           Name: "Build",
           Actions: containers.map(container=>{return {
-            Name: `Build${container}`,
-            Namespace: `BuildVariables${container}`,
+            Name: `Build-${container}`,
+            Namespace: `BuildVariables-${container}`,
             Region: "us-east-1",
             InputArtifacts: [
               {
@@ -399,7 +399,7 @@ function addCodePipeline(Resources, Outputs, containers) {
             },
             OutputArtifacts: [
               {
-                Name: `BuildArtifact${container}`
+                Name: `BuildArtifact-${container}`
               }
             ],
           }}),

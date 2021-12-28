@@ -241,7 +241,7 @@
     "CloudWatchLogGroupshell": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/codebuild/devstack-shell",
+        "LogGroupName": "/aws/codebuild/devstack/shell",
         "RetentionInDays": 180
       }
     },
@@ -272,7 +272,7 @@
         "LogsConfig": {
           "CloudWatchLogs": {
             "Status": "ENABLED",
-            "GroupName": "/aws/codebuild/devstack-shell"
+            "GroupName": "/aws/codebuild/devstack/shell"
           },
           "S3Logs": {
             "Status": "ENABLED",
@@ -310,7 +310,7 @@
     "CloudWatchLogGroupdynamodblocal": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/codebuild/devstack-dynamodblocal",
+        "LogGroupName": "/aws/codebuild/devstack/dynamodblocal",
         "RetentionInDays": 180
       }
     },
@@ -341,7 +341,7 @@
         "LogsConfig": {
           "CloudWatchLogs": {
             "Status": "ENABLED",
-            "GroupName": "/aws/codebuild/devstack-dynamodblocal"
+            "GroupName": "/aws/codebuild/devstack/dynamodblocal"
           },
           "S3Logs": {
             "Status": "ENABLED",
@@ -379,7 +379,7 @@
     "CloudWatchLogGroupelasticsearch": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/codebuild/devstack-elasticsearch",
+        "LogGroupName": "/aws/codebuild/devstack/elasticsearch",
         "RetentionInDays": 180
       }
     },
@@ -410,7 +410,7 @@
         "LogsConfig": {
           "CloudWatchLogs": {
             "Status": "ENABLED",
-            "GroupName": "/aws/codebuild/devstack-elasticsearch"
+            "GroupName": "/aws/codebuild/devstack/elasticsearch"
           },
           "S3Logs": {
             "Status": "ENABLED",
@@ -487,8 +487,8 @@
             "Name": "Build",
             "Actions": [
               {
-                "Name": "Buildshell",
-                "Namespace": "BuildVariablesshell",
+                "Name": "Build-shell",
+                "Namespace": "BuildVariables-shell",
                 "Region": "us-east-1",
                 "InputArtifacts": [
                   {
@@ -509,13 +509,13 @@
                 },
                 "OutputArtifacts": [
                   {
-                    "Name": "BuildArtifactshell"
+                    "Name": "BuildArtifact-shell"
                   }
                 ]
               },
               {
-                "Name": "Builddynamodblocal",
-                "Namespace": "BuildVariablesdynamodblocal",
+                "Name": "Build-dynamodblocal",
+                "Namespace": "BuildVariables-dynamodblocal",
                 "Region": "us-east-1",
                 "InputArtifacts": [
                   {
@@ -536,13 +536,13 @@
                 },
                 "OutputArtifacts": [
                   {
-                    "Name": "BuildArtifactdynamodblocal"
+                    "Name": "BuildArtifact-dynamodblocal"
                   }
                 ]
               },
               {
-                "Name": "Buildelasticsearch",
-                "Namespace": "BuildVariableselasticsearch",
+                "Name": "Build-elasticsearch",
+                "Namespace": "BuildVariables-elasticsearch",
                 "Region": "us-east-1",
                 "InputArtifacts": [
                   {
@@ -563,7 +563,7 @@
                 },
                 "OutputArtifacts": [
                   {
-                    "Name": "BuildArtifactelasticsearch"
+                    "Name": "BuildArtifact-elasticsearch"
                   }
                 ]
               }
