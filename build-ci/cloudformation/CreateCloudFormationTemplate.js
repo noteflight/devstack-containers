@@ -404,12 +404,41 @@ function addCodePipeline(Resources, Outputs, containers) {
             ],
           }}),
         }
-      ]
+      ],
     }
   }
   Outputs.CodePipeline = {
     Description: `The CodePipeline for building the containers`,
     Value: Ref("CodePipeline"),
+  }
+
+  // Create the Webhook for GitHub notifications of source code
+  // changes
+  Resources.CodePipelineWebhook = {
+    Type: "AWS::CodePipeline::Webhook",
+    Properties: {
+      Authentication: "GITHUB_HMAC",
+      AuthenticationConfiguration: {
+        SecretToken: "TestSecret1234",
+      },
+      TargetPipeline: Ref("CodePipeline"),
+      TargetPipelineVersion: GetAtt("CodePipeline", "Version"),
+      TargetAction: "Source",
+      Filters: [
+        {
+          JsonPath: "$.ref",
+          MatchEquals: "refs/heads/{Branch}"
+        }
+      ],
+    },
+  }
+  Outputs.CodePipelineWebhook = {
+    Description: `The CodePipelineWebhook for triggering builds`,
+    Value: Ref("CodePipelineWebhook"),
+  }
+  Outputs.CodePipelineWebhookUrl = {
+    Description: `The URL of the CodePipelineWebhook for triggering builds`,
+    Value: GetAtt("CodePipelineWebhook", "Url"),
   }
 }
 

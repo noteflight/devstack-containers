@@ -569,6 +569,31 @@
           }
         ]
       }
+    },
+    "CodePipelineWebhook": {
+      "Type": "AWS::CodePipeline::Webhook",
+      "Properties": {
+        "Authentication": "GITHUB_HMAC",
+        "AuthenticationConfiguration": {
+          "SecretToken": "TestSecret1234"
+        },
+        "TargetPipeline": {
+          "Ref": "CodePipeline"
+        },
+        "TargetPipelineVersion": {
+          "Fn::GetAtt": [
+            "CodePipeline",
+            "Version"
+          ]
+        },
+        "TargetAction": "Source",
+        "Filters": [
+          {
+            "JsonPath": "$.ref",
+            "MatchEquals": "refs/heads/{Branch}"
+          }
+        ]
+      }
     }
   },
   "Outputs": {
@@ -744,6 +769,21 @@
       "Description": "The CodePipeline for building the containers",
       "Value": {
         "Ref": "CodePipeline"
+      }
+    },
+    "CodePipelineWebhook": {
+      "Description": "The CodePipelineWebhook for triggering builds",
+      "Value": {
+        "Ref": "CodePipelineWebhook"
+      }
+    },
+    "CodePipelineWebhookUrl": {
+      "Description": "The URL of the CodePipelineWebhook for triggering builds",
+      "Value": {
+        "Fn::GetAtt": [
+          "CodePipelineWebhook",
+          "Url"
+        ]
       }
     }
   }
