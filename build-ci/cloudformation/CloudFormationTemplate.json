@@ -20,7 +20,7 @@
         },
         "Policies": [
           {
-            "PolicyName": "DevstackContainersBuildRolePolicy",
+            "PolicyName": "DevstackContainersCodeBuildRolePolicy",
             "PolicyDocument": {
               "Version": "2012-10-17",
               "Statement": [
@@ -68,6 +68,11 @@
                 },
                 {
                   "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
                   "Resource": [
                     {
                       "Fn::GetAtt": [
@@ -75,11 +80,6 @@
                         "Arn"
                       ]
                     }
-                  ],
-                  "Action": [
-                    "logs:CreateLogGroup",
-                    "logs:CreateLogStream",
-                    "logs:PutLogEvents"
                   ]
                 },
                 {
@@ -131,7 +131,7 @@
         },
         "Policies": [
           {
-            "PolicyName": "DevstackContainersBuildRolePolicy",
+            "PolicyName": "DevstackContainersCodePipelineRolePolicy",
             "PolicyDocument": {
               "Version": "2012-10-17",
               "Statement": [

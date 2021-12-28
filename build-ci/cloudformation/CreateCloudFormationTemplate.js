@@ -66,6 +66,7 @@ function addCodeBuildIAMRole(Resources, Outputs, containers) {
       AssumeRolePolicyDocument: {
         Version: "2012-10-17",
         Statement: [
+          // Allow CodeBuild to use this role
           {
             Effect: "Allow",
             Principal: {
@@ -77,7 +78,7 @@ function addCodeBuildIAMRole(Resources, Outputs, containers) {
       },
       Policies: [
         {
-          PolicyName: "DevstackContainersBuildRolePolicy",
+          PolicyName: "DevstackContainersCodeBuildRolePolicy",
           PolicyDocument: {
             Version: "2012-10-17",
             Statement: [
@@ -129,7 +130,7 @@ function addCodeBuildIAMRole(Resources, Outputs, containers) {
                   "logs:CreateLogGroup",
                   "logs:CreateLogStream",
                   "logs:PutLogEvents"
-                ]
+                ],
                 Resource: containers.map(container=>Arn(`CloudWatchLogGroup${container}`)),
               },
 
@@ -168,6 +169,7 @@ function addCodePipelineIAMRole(Resources, Outputs, containers) {
       AssumeRolePolicyDocument: {
         Version: "2012-10-17",
         Statement: [
+          // Allow CodePipeline to use this role
           {
             Effect: "Allow",
             Principal: {
@@ -179,7 +181,7 @@ function addCodePipelineIAMRole(Resources, Outputs, containers) {
       },
       Policies: [
         {
-          PolicyName: "DevstackContainersBuildRolePolicy",
+          PolicyName: "DevstackContainersCodePipelineRolePolicy",
           PolicyDocument: {
             Version: "2012-10-17",
             Statement: [
@@ -233,6 +235,7 @@ function addCodePipelineIAMRole(Resources, Outputs, containers) {
   }
 }
 
+// Adds the components specific to each container image being built
 function addContainerComponents(Resources, Outputs, container) {
   // Add the ECR Repository
   const repositoryResource = `Repository${container}`
