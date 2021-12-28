@@ -471,7 +471,7 @@
                   "ConnectionArn": "arn:aws:codestar-connections:us-east-1:915434789528:connection/f92a8a58-c747-49f9-9392-fdfd88444e30",
                   "BranchName": "main",
                   "OutputArtifactFormat": "CODE_ZIP",
-                  "DetectChanges": true
+                  "DetectChanges": false
                 },
                 "OutputArtifacts": [
                   {

@@ -359,7 +359,8 @@ function addCodePipeline(Resources, Outputs, containers) {
                 ConnectionArn: GITHUB_CONNECTION_ARN,
                 BranchName: GITHUB_BRANCH,
                 OutputArtifactFormat: "CODE_ZIP",
-                DetectChanges: true,
+                //DetectChanges: true,
+                DetectChanges: false,
               },
               OutputArtifacts: [
                 {
