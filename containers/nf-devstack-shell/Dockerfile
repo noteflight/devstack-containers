@@ -39,7 +39,7 @@ RUN cp -r node-v${NODE_VERSION}-linux-x64/bin/* /usr/local/bin
 RUN cp -r node-v${NODE_VERSION}-linux-x64/lib/* /usr/local/lib
 RUN cp -r node-v${NODE_VERSION}-linux-x64/include/* /usr/local/include
 RUN cp -r node-v${NODE_VERSION}-linux-x64/share/* /usr/local/share
-RUN npm install npm@7.20 -g
+RUN npm install npm@${NPM_VERSION} -g
 
 # Install gulp
 ARG GULP_VERSION=2.2.0
