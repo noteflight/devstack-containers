@@ -125,12 +125,12 @@ function addCodeBuildIAMRole(Resources, Outputs, containers) {
               // Permissions for writing logs to CloudWatch
               {
                 Effect: "Allow",
-                Resource: containers.map(container=>Arn(`CloudWatchLogGroup${container}`)),
                 Action: [
                   "logs:CreateLogGroup",
                   "logs:CreateLogStream",
                   "logs:PutLogEvents"
                 ]
+                Resource: containers.map(container=>Arn(`CloudWatchLogGroup${container}`)),
               },
 
               // Permissions for writing logs to the S3 build bucket
@@ -183,38 +183,22 @@ function addCodePipelineIAMRole(Resources, Outputs, containers) {
           PolicyDocument: {
             Version: "2012-10-17",
             Statement: [
-              // Permissions for writing logs to CloudWatch
-              /*
-              {
-                Effect: "Allow",
-                Resource: containers.map(container=>Arn(`CloudWatchLogGroup${container}`)),
-                Action: [
-                  "logs:CreateLogGroup",
-                  "logs:CreateLogStream",
-                  "logs:PutLogEvents"
-                ]
-              },
-              */
-
               // Permissions for accessing the S3 build bucket
               {
                 Effect: "Allow",            
                 Action: [
-                  "s3:*",
-                  /*
                   "s3:PutObject",
                   "s3:GetObject",
                   "s3:GetObjectVersion",
                   "s3:GetBucketAcl",
                   "s3:GetBucketLocation",
-                  */
+                  // CodePipeline apparently uses this too, in
+                  // addition to the "regular" permissions above
+                  "s3:PutObjectAcl",
                 ],
                 Resource: [
-                  "*"
-                  /*
                   Arn("BuildBucket"),
                   Join([Arn("BuildBucket"), "*"], "/"),
-                  */
                 ],
               },
 

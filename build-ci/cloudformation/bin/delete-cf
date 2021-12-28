@@ -4,4 +4,24 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 . ${DIR}/cf-common
 
+TMP_FILE="/tmp/stackResources${STACK_NAME}.json"
+aws cloudformation describe-stack-resources --stack-name ${STACK_NAME} > ${TMP_FILE}
+BUILD_BUCKET=`cat ${TMP_FILE} | jq -r '.StackResources[] | select(.LogicalResourceId == "BuildBucket") | .PhysicalResourceId'`
+DYNAMODB_LOCAL_REPOSITORY=`cat ${TMP_FILE} | jq -r '.StackResources[] | select(.LogicalResourceId == "Repositorydynamodblocal") | .PhysicalResourceId'`
+
+echo "WARNING: The following resources will be emptied out before deleting the CloudFormation stack:"
+echo "  S3 bucket \"${BUILD_BUCKET}\""
+echo "  ECR repository \"${DYNAMODB_LOCAL_REPOSITORY}\""
+echo
+read -r -p "Do you want to continue (yes/no)? "
+if [[ ! $REPLY = "yes" ]]
+then
+    exit 1
+fi
+
+echo "Emptying ${BUILD_BUCKET}"
+aws s3 rm s3://${BUILD_BUCKET} --recursive
+echo "Deleting ${DYNAMODB_LOCAL_REPOSITORY}"
+aws ecr delete-repository --force --repository-name ${DYNAMODB_LOCAL_REPOSITORY}
+echo "Deleting stack ${STACK_NAME}"
 aws cloudformation delete-stack --stack-name ${STACK_NAME}

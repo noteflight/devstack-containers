@@ -5,22 +5,25 @@
 #
 #   latest
 #   branch-{branch name}
-#   branch-{branch name}-commit-{short commit}
+#   branch-{branch name}-commit-{commit id}
 #
 # Args:
 #
 # $1: context directory (with Dockerfile at root)
 # $2: local image name
 # $3: ECR image name
+#
+# This expects the following environment variables to be set
+# (typically set by CodePipeline):
+#
+# GIT_BRANCH: the name of the branch being built
+# GIT_COMMIT: the full commit id of the commit being built
+#
 build_container () {
     CONTEXT_DIR=$1
     IMAGE_TAG=$2
     REGISTRY_SERVER="915434789528.dkr.ecr.us-east-1.amazonaws.com"
     REPO_URL="${REGISTRY_SERVER}/${3}"
-    # These are now expected to be passed in from CodePipeline
-    #GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
-    #GIT_COMMIT=`git rev-parse HEAD`
-    #GIT_SHORT_COMMIT=`git rev-parse --short HEAD`
     SHORT_TAG="${REPO_URL}:branch-${GIT_BRANCH}"
     LONG_TAG="${REPO_URL}:branch-${GIT_BRANCH}-commit-${GIT_COMMIT}"
     LATEST_TAG="${REPO_URL}:latest"
