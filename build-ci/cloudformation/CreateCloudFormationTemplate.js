@@ -288,7 +288,6 @@ function addContainerComponents(Resources, Outputs, container) {
         Type: "CODEPIPELINE",
         BuildSpec: `build-ci/codebuild/buildspec.yml`,
       },
-      SourceVersion: GITHUB_BRANCH,
       Artifacts: {
         Type: "CODEPIPELINE",
       },
@@ -359,7 +358,8 @@ function addCodePipeline(Resources, Outputs, containers) {
                 FullRepositoryId: GITHUB_REPO_NAME,
                 ConnectionArn: GITHUB_CONNECTION_ARN,
                 BranchName: GITHUB_BRANCH,
-                OutputArtifactFormat: "CODE_ZIP"
+                OutputArtifactFormat: "CODE_ZIP",
+                DetectChanges: true,
               },
               OutputArtifacts: [
                 {

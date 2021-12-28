@@ -254,7 +254,6 @@
           "Type": "CODEPIPELINE",
           "BuildSpec": "build-ci/codebuild/buildspec.yml"
         },
-        "SourceVersion": "main",
         "Artifacts": {
           "Type": "CODEPIPELINE"
         },
@@ -323,7 +322,6 @@
           "Type": "CODEPIPELINE",
           "BuildSpec": "build-ci/codebuild/buildspec.yml"
         },
-        "SourceVersion": "main",
         "Artifacts": {
           "Type": "CODEPIPELINE"
         },
@@ -392,7 +390,6 @@
           "Type": "CODEPIPELINE",
           "BuildSpec": "build-ci/codebuild/buildspec.yml"
         },
-        "SourceVersion": "main",
         "Artifacts": {
           "Type": "CODEPIPELINE"
         },
@@ -473,7 +470,8 @@
                   "FullRepositoryId": "noteflight/devstack-containers",
                   "ConnectionArn": "arn:aws:codestar-connections:us-east-1:915434789528:connection/f92a8a58-c747-49f9-9392-fdfd88444e30",
                   "BranchName": "main",
-                  "OutputArtifactFormat": "CODE_ZIP"
+                  "OutputArtifactFormat": "CODE_ZIP",
+                  "DetectChanges": true
                 },
                 "OutputArtifacts": [
                   {
