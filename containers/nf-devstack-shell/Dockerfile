@@ -90,7 +90,7 @@ RUN apt-get install -y dialog apt-utils
 # Prepare docker to be accessible from within the container (it will
 # only be accessible if the host runs the container with -v
 # /var/run/docker.sock:/var/run/docker.sock)
-RUN apt-get install -y docker docker-compose
+RUN apt-get install -y docker
 RUN touch /var/run/docker.sock
 RUN chmod 666 /var/run/docker.sock
 
