@@ -118,7 +118,26 @@ RUN apt-get -f install -y
 # This second attempt should succeed
 RUN dpkg -i google-chrome-stable_current_amd64.deb
 
-RUN apt-get install -y chromium-browser
+# Generate a self-signed certificate, used in running SSL servers
+USER root
+RUN mkdir -p /root/builds/cert
+WORKDIR /root/builds/cert
+RUN cp /usr/lib/ssl/openssl.cnf ./ssl.cnf
+RUN echo "[SAN]" >> ./ssl.cnf
+RUN echo "subjectAltName=DNS:localhost,DNS:demo.noteflight.com" >> ./ssl.cnf
+RUN openssl genrsa -des3 -passout pass:abcdef -out server.pass.key 2048
+RUN openssl rsa -passin pass:abcdef -in server.pass.key -out server.key
+RUN rm server.pass.key
+RUN openssl req -newkey rsa:2048 -x509 -nodes -keyout server.key -new -out server.crt -subj /CN=localhost.ssl -reqexts SAN -extensions SAN -sha256 -days 3650 -config ./ssl.cnf
+RUN mkdir -p /home/${USERNAME}/.ssh
+RUN cp /root/builds/cert/server.crt /home/${USERNAME}/.ssh
+RUN cp /root/builds/cert/server.key /home/${USERNAME}/.ssh
+RUN chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.ssh
+RUN chmod -R 600 /home/${USERNAME}/.ssh/*
+RUN chmod 700 /home/${USERNAME}/.ssh
+ENV NF_DEV_SERVER_KEY=/home/${USERNAME}/.ssh/server.key
+ENV NF_DEV_SERVER_CERT=/home/${USERNAME}/.ssh/server.crt
+
 
 # Prepare /noteflight, where the NF repos will be mounted
 USER root
@@ -142,6 +161,7 @@ RUN echo "export GEM_PATH=\"\$GEM_PATH:${APPGEMS_PATH}/ruby/2.7.0\"" >> ~/.bash_
 USER ${USERNAME}
 RUN echo "export PATH=\"\$PATH:/noteflight/webapp/devbin\"" >> ~/.bash_aliases
 RUN echo "export PATH=\"\$PATH:/noteflight/devops-utils/bin\"" >> ~/.bash_aliases
+RUN echo "export PATH=\"\$PATH:/noteflight/devstack-containers/bin\"" >> ~/.bash_aliases
 
 USER ${USERNAME}
 WORKDIR /home/${USERNAME}
