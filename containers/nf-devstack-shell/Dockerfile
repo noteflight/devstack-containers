@@ -118,7 +118,7 @@ RUN chown -R ${USERNAME}:${USERNAME} /noteflight
 # restarted).  Also update the PATH and GEM_PATH to allow executable
 # gems to be run without requiring "bundle exec".
 USER ${USERNAME}
-ARG APPGEMS_PATH=/home/${USERNAME}/webapp/site/vendor/bundle
+ARG APPGEMS_PATH=/noteflight/webapp/site/vendor/bundle
 RUN mkdir -p ${APPGEMS_PATH}
 RUN chown -R ${USERNAME}:${USERNAME} ${APPGEMS_PATH}
 RUN bundle config set path ${APPGEMS_PATH}
