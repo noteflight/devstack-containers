@@ -74,7 +74,16 @@ RUN gem install mysql2 -v ${MYSQL_GEM_VERSION}
 
 # Install useful utilities
 RUN apt-get install -y telnet emacs sudo zip
-RUN apt-get install -y git
+RUN apt-get install -y git jq
+RUN apt-get install -y iproute2 iputils-ping ssh
+RUN apt-get install -y dialog apt-utils
+
+# Prepare docker to be accessible from within the container (it will
+# only be accessible if the host runs the container with -v
+# /var/run/docker.sock:/var/run/docker.sock)
+RUN apt-get install -y docker docker-compose
+RUN touch /var/run/docker.sock
+RUN chmod 666 /var/run/docker.sock
 
 # Create the noteflight user, allow it to sudo without a password
 ARG USERNAME=noteflight
@@ -82,6 +91,12 @@ RUN useradd -ms /bin/bash ${USERNAME}
 RUN echo "${USERNAME} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/01-${USERNAME}
 USER ${USERNAME}
 WORKDIR /home/${USERNAME}
+
+# Install rust
+USER ${USERNAME}
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+RUN echo "export PATH=\"\$PATH:\$HOME/.cargo/bin\"" >> ~/.bash_aliases
+USER root
 
 # Prepare ~/webapp, where the NF repo will be mounted
 USER root
