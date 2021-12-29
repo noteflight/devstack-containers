@@ -62,25 +62,16 @@ services:
       NF_DEV_ELASTICSEARCH_PORT: "19200"
       NF_TEST_ELASTICSEARCH_HOST: "172.17.0.1"
       NF_TEST_ELASTICSEARCH_PORT: "19201"
-      NF_DEV_SERVER_KEY: "/home/noteflight/server.key"
-      NF_DEV_SERVER_CERT: "/home/noteflight/server.crt"
       NF_DEV_WEBSERVER_HOST: ${NF_DEV_WEBSERVER_HOST}
       NF_DEV_WEBSERVER_PORT: 18080
-    depends_on:
-      - elasticsearch
-      - elasticsearch-test
-      - dynamodb
-      - mysql
-    ports:
-      - 18080:8080
-      - 13000:3000
     networks:
       - host
     volumes:
+      # Mount the noteflight repos
       - ${NF_REPOS}:/noteflight
+      # Set the mock_s3 data to go to the devstack data directory
       - ${NF_DEVSTACK_DATA}/nf-site-mock_s3:/noteflight/webapp/site/public/mock_s3
-      - ${NF_DEV_SERVER_KEY}:/noteflight/.ssh/server.key
-      - ${NF_DEV_SERVER_CERT}:/noteflight/.ssh/server.crt
+      # Allows docker commands to be run from within the container
       - /var/run/docker.sock:/var/run/docker.sock
     entrypoint:
       /noteflight/webapp/devbin/nf-noop-loop
