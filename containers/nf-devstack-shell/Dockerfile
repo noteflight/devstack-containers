@@ -5,9 +5,9 @@
 #
 # After installing the base software, this will also create a
 # "noteflight" user (with sudo privileges), and will create
-# /home/noteflight/webapp/, with the expectation that containers
-# running this image will mount the NF webapp repo from the host into
-# this mount point.
+# /noteflight, with the expectation that containers running
+# this image will mount the directory containing NF repos into this
+# mount point.
 
 FROM ubuntu:20.04
 
@@ -98,11 +98,10 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 RUN echo "export PATH=\"\$PATH:\$HOME/.cargo/bin\"" >> ~/.bash_aliases
 USER root
 
-# Prepare ~/webapp, where the NF repo will be mounted
+# Prepare /noteflight, where the NF repos will be mounted
 USER root
-WORKDIR /home/${USERNAME}
-RUN mkdir webapp
-RUN chown -R ${USERNAME}:${USERNAME} webapp
+RUN mkdir /noteflight
+RUN chown -R ${USERNAME}:${USERNAME} /noteflight
 
 # Configure bundle to install gems to a more permanent location
 # (bundle normally installs gems to somewhere in /usr/local/lib, which
@@ -119,7 +118,8 @@ RUN echo "export GEM_PATH=\"\$GEM_PATH:${APPGEMS_PATH}/ruby/2.7.0\"" >> ~/.bash_
 
 # Add the nf-... utilities to the PATH
 USER ${USERNAME}
-RUN echo "export PATH=\"\$PATH:\$HOME/webapp/dockerfiles\"" >> ~/.bash_aliases
+RUN echo "export PATH=\"\$PATH:/noteflight/webapp/devbin\"" >> ~/.bash_aliases
+RUN echo "export PATH=\"\$PATH:/noteflight/devops-utils/bin\"" >> ~/.bash_aliases
 
 USER ${USERNAME}
 WORKDIR /home/${USERNAME}
