@@ -107,6 +107,9 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 RUN echo "export PATH=\"\$PATH:\$HOME/.cargo/bin\"" >> ~/.bash_aliases
 USER root
 
+# Install chromium-browser (used to run karma tests)
+RUN apt-get install -y chromium-browser
+
 # Prepare /noteflight, where the NF repos will be mounted
 USER root
 RUN mkdir /noteflight
