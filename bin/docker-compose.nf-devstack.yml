@@ -1,0 +1,88 @@
+version: "3.3"
+services:
+  elasticsearch:
+    container_name: elasticsearch
+    image: nf-devstack-elasticsearch
+    environment:
+      ES_JAVA_OPTS: -Xms256m -Xmx256m
+    ports:
+      - 19200:9200
+      - 19300:9300
+    networks:
+      - host
+    volumes:
+      - ${NF_DEVSTACK_DATA}/elasticsearch:/home/elasticsearch/elasticsearch/data
+    restart: always
+  elasticsearch-test:
+    container_name: elasticsearch-test
+    image: nf-devstack-elasticsearch
+    environment:
+      ES_JAVA_OPTS: -Xms256m -Xmx256m
+    ports:
+      - 19201:9200
+      - 19301:9300
+    networks:
+      - host
+    volumes:
+      - ${NF_DEVSTACK_DATA}/elasticsearch-test:/home/elasticsearch/elasticsearch/data
+    restart: always
+  dynamodb:
+    container_name: dynamodb
+    image: nf-devstack-dynamodblocal
+    ports:
+      - 18000:8000
+    networks:
+      - host
+    volumes:
+      - ${NF_DEVSTACK_DATA}/dynamodb:/home/dynamodblocal/data
+    restart: always
+  mysql:
+    container_name: mysql
+    image: mysql:5.7.35
+    environment:
+      MYSQL_ROOT_PASSWORD: newpassword
+    ports:
+      - 13306:3306
+    networks:
+      - host
+    volumes:
+      - ${NF_DEVSTACK_DATA}/mysql:/var/lib/mysql
+    restart: always
+  nf-shell:
+    container_name: nf-shell
+    image: nf-devstack-shell
+    environment:
+      NF_DEVTEST_DATABASE_USER: "root"
+      NF_DEVTEST_DATABASE_PASSWORD: "newpassword"
+      NF_DEVTEST_DATABASE_HOST: "172.17.0.1"
+      NF_DEVTEST_DATABASE_PORT: "13306"
+      NF_DEVTEST_DYNAMODB_HOST: "172.17.0.1"
+      NF_DEVTEST_DYNAMODB_PORT: "18000"
+      NF_DEV_ELASTICSEARCH_HOST: "172.17.0.1"
+      NF_DEV_ELASTICSEARCH_PORT: "19200"
+      NF_TEST_ELASTICSEARCH_HOST: "172.17.0.1"
+      NF_TEST_ELASTICSEARCH_PORT: "19201"
+      NF_DEV_SERVER_KEY: "/home/noteflight/server.key"
+      NF_DEV_SERVER_CERT: "/home/noteflight/server.crt"
+      NF_DEV_WEBSERVER_HOST: ${NF_DEV_WEBSERVER_HOST}
+      NF_DEV_WEBSERVER_PORT: 18080
+    depends_on:
+      - elasticsearch
+      - elasticsearch-test
+      - dynamodb
+      - mysql
+    ports:
+      - 18080:8080
+      - 13000:3000
+    networks:
+      - host
+    volumes:
+      - ${NF_REPOS}:/noteflight
+      - ${NF_DEVSTACK_DATA}/nf-site-mock_s3:/noteflight/webapp/site/public/mock_s3
+      - ${NF_DEV_SERVER_KEY}:/noteflight/.ssh/server.key
+      - ${NF_DEV_SERVER_CERT}:/noteflight/.ssh/server.crt
+      - /var/run/docker.sock:/var/run/docker.sock
+    entrypoint:
+      /noteflight/webapp/devbin/nf-noop-loop
+networks:
+  host:

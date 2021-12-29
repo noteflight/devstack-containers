@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Initialize the directories on the host machine that will hold the
+# data used by the devstack's services.  This allows that data to be
+# persisted, even when the devstack containers are stopped or
+# restarted.  The state of the devstack services can also be preserved
+# by moving or copying this directory (while the devstack is stopped)
+
+mkdir -p ${NF_DEVSTACK_DATA}
+
+mkdir -p ${NF_DEVSTACK_DATA}/elasticsearch
+mkdir -p ${NF_DEVSTACK_DATA}/elasticsearch-test
+mkdir -p ${NF_DEVSTACK_DATA}/dynamodb
+mkdir -p ${NF_DEVSTACK_DATA}/mysql
+mkdir -p ${NF_DEVSTACK_DATA}/nf-site-mock_s3
+
+chmod -R a+rwx ${NF_DEVSTACK_DATA}/*
+
+echo "Initialized directories in ${NF_DEVSTACK_DATA}"

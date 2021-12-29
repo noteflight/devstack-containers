@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Initialize the directories on the host machine that will hold the
+# data used by the devstack's services.  This allows that data to be
+# persisted, even when the devstack containers are stopped or
+# restarted.  The state of the devstack services can also be preserved
+# by moving or copying this directory (while the devstack is stopped)
+
+echo "Removing directory ${NF_DEVSTACK_DATA}"
+sudo rm -rf ${NF_DEVSTACK_DATA}
