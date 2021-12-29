@@ -72,6 +72,15 @@ ARG MYSQL_GEM_VERSION=0.5.2
 RUN apt-get install -y mysql-client libmysqlclient-dev
 RUN gem install mysql2 -v ${MYSQL_GEM_VERSION}
 
+# Install aws cli v2
+# (https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+RUN apt-get install -y zip
+RUN mkdir -p /root/builds/awscli
+WORKDIR /root/builds/awscli
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+RUN unzip awscliv2.zip
+RUN ./aws/install
+
 # Install useful utilities
 RUN apt-get install -y telnet emacs sudo zip
 RUN apt-get install -y git jq
