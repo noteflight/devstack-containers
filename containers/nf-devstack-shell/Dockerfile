@@ -107,7 +107,17 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 RUN echo "export PATH=\"\$PATH:\$HOME/.cargo/bin\"" >> ~/.bash_aliases
 USER root
 
-# Install chromium-browser (used to run karma tests)
+# Install chrome (used to run karma tests)
+RUN mkdir -p /root/builds/chrome
+WORKDIR /root/builds/chrome
+RUN curl -o google-chrome-stable_current_amd64.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+# This first attempt to install chrome will fail, but will mark its dependencies.  The "|| true" prevents it from stopping the build
+RUN dpkg -i google-chrome-stable_current_amd64.deb || true
+# Install the marked dependencies
+RUN apt-get -f install -y
+# This second attempt should succeed
+RUN dpkg -i google-chrome-stable_current_amd64.deb
+
 RUN apt-get install -y chromium-browser
 
 # Prepare /noteflight, where the NF repos will be mounted
