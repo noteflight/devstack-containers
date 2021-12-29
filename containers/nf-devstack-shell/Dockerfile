@@ -86,6 +86,7 @@ RUN apt-get install -y telnet emacs sudo zip
 RUN apt-get install -y git jq
 RUN apt-get install -y iproute2 iputils-ping ssh
 RUN apt-get install -y dialog apt-utils
+RUN apt-get install -y groff
 
 # Prepare docker to be accessible from within the container (it will
 # only be accessible if the host runs the container with -v
