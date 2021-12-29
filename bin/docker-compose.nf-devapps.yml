@@ -1,94 +1,33 @@
-version: "3.3"
+# Note that we're using this version since it supports the "extends"
+# construct.  Otherwise we'd have to copy the configurations from
+# nf-devstack
+version: "2.1"
 services:
-  # FIXME: these services use the same configuration as the "nf-shell"
-  # service in docker-compose.nf-devstack.yml.  Eventually this should
-  # be DRY-ed up through some inheritance mechanism of docker-compose.
-  
   nf-client-webpack:
     container_name: nf-client-webpack
-    image: nf-devstack-shell
-    environment:
-      NF_DEVTEST_DATABASE_USER: "root"
-      NF_DEVTEST_DATABASE_PASSWORD: "newpassword"
-      NF_DEVTEST_DATABASE_HOST: "172.17.0.1"
-      NF_DEVTEST_DATABASE_PORT: "13306"
-      NF_DEVTEST_DYNAMODB_HOST: "172.17.0.1"
-      NF_DEVTEST_DYNAMODB_PORT: "18000"
-      NF_DEV_ELASTICSEARCH_HOST: "172.17.0.1"
-      NF_DEV_ELASTICSEARCH_PORT: "19200"
-      NF_TEST_ELASTICSEARCH_HOST: "172.17.0.1"
-      NF_TEST_ELASTICSEARCH_PORT: "19201"
-      NF_DEV_WEBSERVER_HOST: ${NF_DEV_WEBSERVER_HOST}
-      NF_DEV_WEBSERVER_PORT: 18080
+    extends:
+      file: docker-compose.nf-devstack.yml
+      service: nf-shell
     ports:
       - 18080:8080
-    networks:
-      - host
-    volumes:
-      # Mount the noteflight repos
-      - ${NF_REPOS}:/noteflight
-      # Set the mock_s3 data to go to the devstack data directory
-      - ${NF_DEVSTACK_DATA}/nf-site-mock_s3:/noteflight/webapp/site/public/mock_s3
-      # Allows docker commands to be run from within the container
-      - /var/run/docker.sock:/var/run/docker.sock
     entrypoint:
       /noteflight/webapp/devbin/nf-run-client-webpack
 
   nf-rails-server:
     container_name: nf-rails-server
-    image: nf-devstack-shell
-    environment:
-      NF_DEVTEST_DATABASE_USER: "root"
-      NF_DEVTEST_DATABASE_PASSWORD: "newpassword"
-      NF_DEVTEST_DATABASE_HOST: "172.17.0.1"
-      NF_DEVTEST_DATABASE_PORT: "13306"
-      NF_DEVTEST_DYNAMODB_HOST: "172.17.0.1"
-      NF_DEVTEST_DYNAMODB_PORT: "18000"
-      NF_DEV_ELASTICSEARCH_HOST: "172.17.0.1"
-      NF_DEV_ELASTICSEARCH_PORT: "19200"
-      NF_TEST_ELASTICSEARCH_HOST: "172.17.0.1"
-      NF_TEST_ELASTICSEARCH_PORT: "19201"
-      NF_DEV_WEBSERVER_HOST: ${NF_DEV_WEBSERVER_HOST}
-      NF_DEV_WEBSERVER_PORT: 18080
+    extends:
+      file: docker-compose.nf-devstack.yml
+      service: nf-shell
     ports:
       - 13000:3000
-    networks:
-      - host
-    volumes:
-      # Mount the noteflight repos
-      - ${NF_REPOS}:/noteflight
-      # Set the mock_s3 data to go to the devstack data directory
-      - ${NF_DEVSTACK_DATA}/nf-site-mock_s3:/noteflight/webapp/site/public/mock_s3
-      # Allows docker commands to be run from within the container
-      - /var/run/docker.sock:/var/run/docker.sock
     entrypoint:
       /noteflight/webapp/devbin/nf-run-rails-server
 
   nf-gulp:
     container_name: nf-gulp
-    image: nf-devstack-shell
-    environment:
-      NF_DEVTEST_DATABASE_USER: "root"
-      NF_DEVTEST_DATABASE_PASSWORD: "newpassword"
-      NF_DEVTEST_DATABASE_HOST: "172.17.0.1"
-      NF_DEVTEST_DATABASE_PORT: "13306"
-      NF_DEVTEST_DYNAMODB_HOST: "172.17.0.1"
-      NF_DEVTEST_DYNAMODB_PORT: "18000"
-      NF_DEV_ELASTICSEARCH_HOST: "172.17.0.1"
-      NF_DEV_ELASTICSEARCH_PORT: "19200"
-      NF_TEST_ELASTICSEARCH_HOST: "172.17.0.1"
-      NF_TEST_ELASTICSEARCH_PORT: "19201"
-      NF_DEV_WEBSERVER_HOST: ${NF_DEV_WEBSERVER_HOST}
-      NF_DEV_WEBSERVER_PORT: 18080
-    networks:
-      - host
-    volumes:
-      # Mount the noteflight repos
-      - ${NF_REPOS}:/noteflight
-      # Set the mock_s3 data to go to the devstack data directory
-      - ${NF_DEVSTACK_DATA}/nf-site-mock_s3:/noteflight/webapp/site/public/mock_s3
-      # Allows docker commands to be run from within the container
-      - /var/run/docker.sock:/var/run/docker.sock
+    extends:
+      file: docker-compose.nf-devstack.yml
+      service: nf-shell
     entrypoint:
       /noteflight/webapp/devbin/nf-run-gulp
 networks:
