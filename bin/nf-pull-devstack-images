@@ -1,12 +1,16 @@
 #!/bin/bash
 
+# Get the docker-compose image used by the nf-...-devstack and
+# nf-...-devapp commands
+docker pull docker/compose
+
 # Noteflight's ECR location, holding its built Docker images
 ECR_SERVER=915434789528.dkr.ecr.us-east-1.amazonaws.com
 
 # Log in to ECR's Docker registry
 aws ecr get-login-password --region=us-east-1 | docker login -u AWS --password-stdin ${ECR_SERVER}
 
-# Pull the images and given them local tags
+# Pull the images and give them local tags
 docker pull ${ECR_SERVER}/nf-devstack-shell:latest
 docker tag ${ECR_SERVER}/nf-devstack-shell nf-devstack-shell
 

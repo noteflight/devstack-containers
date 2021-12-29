@@ -2,7 +2,6 @@
 
 # Get the directory containing this script
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+. ${DIR}/compose-common
 
-docker-compose -f ${DIR}/docker-compose.nf-devstack.yml logs $1 $2 $3 $4 $5 $6 $7 $8 $9
-
-
+docker-compose-devstack logs $1 $2 $3 $4 $5 $6 $7 $8 $9

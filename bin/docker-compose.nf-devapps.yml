@@ -1,5 +1,9 @@
 version: "3.3"
 services:
+  # FIXME: these services use the same configuration as the "nf-shell"
+  # service in docker-compose.nf-devstack.yml.  Eventually this should
+  # be DRY-ed up through some inheritance mechanism of docker-compose.
+  
   nf-client-webpack:
     container_name: nf-client-webpack
     image: nf-devstack-shell
@@ -29,6 +33,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     entrypoint:
       /noteflight/webapp/devbin/nf-run-client-webpack
+
   nf-rails-server:
     container_name: nf-rails-server
     image: nf-devstack-shell
@@ -58,6 +63,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     entrypoint:
       /noteflight/webapp/devbin/nf-run-rails-server
+
   nf-gulp:
     container_name: nf-gulp
     image: nf-devstack-shell
