@@ -127,62 +127,21 @@ RUN chmod a+r /root/builds/cert/*
 ENV NF_DEV_SERVER_KEY=/root/builds/cert/server.key
 ENV NF_DEV_SERVER_CERT=/root/builds/cert/server.crt
 
-##################################################
-# Configuration involving the noteflight user
-
-# Create the noteflight user, allow it to sudo without a password.
-# The user and associated group are created with a set uid and gid of
-# 275001.  Files created by this container in directories mounted from
-# the host will appear to be owned by that uid/gid when seen on the
-# host.  The host system may wish to create a user with the same
-# uid/gid so that there is a name associated with the uid/gid when
-# listing those directories on the host.
-ARG USERNAME=noteflight
-ARG NF_UID=275001
-RUN groupadd --gid ${NF_UID} ${USERNAME}
-RUN useradd --gid ${NF_UID} --uid ${NF_UID} -ms /bin/bash ${USERNAME}
-RUN echo "${USERNAME} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/01-${USERNAME}
-WORKDIR /home/${USERNAME}
-
-# Prepare /noteflight, where the NF repos will be mounted
-USER root
-RUN mkdir /noteflight
-RUN chown -R ${USERNAME}:${USERNAME} /noteflight
-
-# Prepare the location where the AWS credentials will be mounted
-USER ${USERNAME}
-RUN mkdir -p /home/${USERNAME}/.aws
-RUN touch /home/${USERNAME}/.aws/config
-
-# Prepare the location where the git credentials will be mounted
-USER ${USERNAME}
-RUN touch /home/${USERNAME}/.gitconfig
-
-# Prepare the location where the .ssh directory will be mounted
-USER ${USERNAME}
-RUN mkdir -p /home/${USERNAME}/.ssh
-RUN chmod 600 /home/${USERNAME}/.ssh
-
-# Configure bundle to install gems to a more permanent location
-# (bundle normally installs gems to somewhere in /usr/local/lib, which
+# Configure bundle to install gems to a more permanent location.
+# Bundle normally installs gems to somewhere in /usr/local/lib, which
 # is reset back to the image's original contents when the container is
-# restarted).  Also update the PATH and GEM_PATH to allow executable
-# gems to be run without requiring "bundle exec".
-USER ${USERNAME}
+# restarted, so we instead set it to be within the /noteflight repo
+# (into a .gitignore'd location).  Update the PATH and GEM_PATH to
+# allow executable gems to be run without requiring "bundle exec".
 ARG APPGEMS_PATH=/noteflight/webapp/site/vendor/bundle
-RUN mkdir -p ${APPGEMS_PATH}
-RUN chown -R ${USERNAME}:${USERNAME} ${APPGEMS_PATH}
-RUN bundle config set path ${APPGEMS_PATH}
-USER root
+ENV BUNDLE_PATH=${APPGEMS_PATH}
 ENV PATH=${PATH}:${APPGEMS_PATH}/ruby/2.7.0/bin
 ENV GEM_PATH=${GEM_PATH}:${APPGEMS_PATH}/ruby/2.7.0
 
 # Add the nf-... utilities to the PATH
-USER root
 ENV PATH=${PATH}:/noteflight/webapp/devbin
 ENV PATH=${PATH}:/noteflight/devops-utils/bin
 ENV PATH=${PATH}:/noteflight/devstack-containers/bin
 
-# By default, start in the user's home directory
-USER ${USERNAME}
-WORKDIR /home/${USERNAME}
+# By default start in /noteflight
+WORKDIR /noteflight

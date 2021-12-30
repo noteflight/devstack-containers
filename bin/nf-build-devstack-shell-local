@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Get the directory of this script
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+docker build \
+       --build-arg NF_DEVSTACK_USER=${NF_DEVSTACK_USER} \
+       --build-arg NF_DEVSTACK_USER_UID=`id -u ${NF_DEVSTACK_USER}` \
+       --build-arg NF_DEVSTACK_USER_GID=`id -g ${NF_DEVSTACK_USER}` \
+       -t nf-devstack-shell-local ${DIR}/../containers/nf-devstack-shell-local

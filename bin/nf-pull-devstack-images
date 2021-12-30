@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Get the directory of this script
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
 # Get the docker-compose image used by the nf-...-devstack and
 # nf-...-devapp commands
 docker pull docker/compose
@@ -22,3 +25,8 @@ docker tag ${ECR_SERVER}/nf-devstack-dynamodblocal nf-devstack-dynamodblocal
 
 docker pull ${ECR_SERVER}/nf-devstack-elasticsearch:latest
 docker tag ${ECR_SERVER}/nf-devstack-elasticsearch nf-devstack-elasticsearch
+
+# Rebuild the nf-devstack-shell-local since nf-devstack-shell may have
+# changed
+${DIR}/nf-build-devstack-shell-local
+

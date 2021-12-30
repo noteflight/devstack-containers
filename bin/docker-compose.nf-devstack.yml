@@ -50,7 +50,7 @@ services:
     restart: always
   nf-shell:
     container_name: nf-shell
-    image: nf-devstack-shell
+    image: nf-devstack-shell-local
     environment:
       NF_DEVTEST_DATABASE_USER: "root"
       NF_DEVTEST_DATABASE_PASSWORD: "newpassword"
