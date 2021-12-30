@@ -9,6 +9,7 @@ docker-compose-run() {
     --env NF_DEVSTACK_DATA=${NF_DEVSTACK_DATA} \
     --env NF_DEV_WEBSERVER_HOST=${NF_DEV_WEBSERVER_HOST} \
     --env NF_REPOS=${NF_REPOS} \
+    --env NF_DEVSTACK_USER=${NF_DEVSTACK_USER} \
     --env NF_AWS_CONFIG_FILE=${NF_AWS_CONFIG_FILE} \
     --env NF_GIT_CONFIG_FILE=${NF_GIT_CONFIG_FILE} \
     --env NF_SSH_DIR=${NF_SSH_DIR} \

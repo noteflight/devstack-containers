@@ -74,11 +74,11 @@ services:
       # Set the mock_s3 data to go to the devstack data directory
       - ${NF_DEVSTACK_DATA}/nf-site-mock_s3:/noteflight/webapp/site/public/mock_s3
       # Mount the AWS credentials
-      - ${NF_AWS_CONFIG_FILE}:/home/noteflight/.aws/config
+      - ${NF_AWS_CONFIG_FILE}:/home/${NF_DEVSTACK_USER}/.aws/config
       # Mount the git config file
-      - ${NF_GIT_CONFIG_FILE}:/home/noteflight/.gitconfig
+      - ${NF_GIT_CONFIG_FILE}:/home/${NF_DEVSTACK_USER}/.gitconfig
       # Mount the .ssh directory
-      - ${NF_SSH_DIR}:/home/noteflight/.ssh
+      - ${NF_SSH_DIR}:/home/${NF_DEVSTACK_USER}/.ssh
     entrypoint:
       /noteflight/webapp/devbin/nf-noop-loop
 networks:
