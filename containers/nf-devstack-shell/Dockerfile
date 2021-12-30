@@ -15,6 +15,9 @@ FROM ubuntu:20.04
 RUN apt-get -y upgrade
 RUN apt-get update
 
+# Prepare the file for modifying the system-wide path
+ARG PATH_FILE=/etc/profile.d/99-noteflight-paths
+
 # Build and install ruby from downloaded source
 ARG RUBY_VERSION=2.7.4
 RUN apt-get install -y curl gcc make bison openssl libssl-dev zlib1g-dev
@@ -34,7 +37,7 @@ RUN mkdir -p /root/builds/node
 WORKDIR /root/builds/node
 RUN curl -o node-v${NODE_VERSION}-linux-x64.tar.gz https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz
 RUN tar xzf node-v${NODE_VERSION}-linux-x64.tar.gz
-# Installing is as simple as copying the distribution components into /usr/local
+# Installing is just copying the distribution components into /usr/local
 RUN cp -r node-v${NODE_VERSION}-linux-x64/bin/* /usr/local/bin
 RUN cp -r node-v${NODE_VERSION}-linux-x64/lib/* /usr/local/lib
 RUN cp -r node-v${NODE_VERSION}-linux-x64/include/* /usr/local/include
@@ -86,6 +89,7 @@ RUN apt-get install -y telnet emacs sudo zip
 RUN apt-get install -y git jq
 RUN apt-get install -y iproute2 iputils-ping ssh
 RUN apt-get install -y dialog apt-utils
+# Used for displaying aws cli help pages
 RUN apt-get install -y groff
 
 # Prepare docker to be accessible from within the container (it will
@@ -95,24 +99,16 @@ RUN apt-get install -y docker
 RUN touch /var/run/docker.sock
 RUN chmod 666 /var/run/docker.sock
 
-# Create the noteflight user, allow it to sudo without a password
-ARG USERNAME=noteflight
-RUN useradd -ms /bin/bash ${USERNAME}
-RUN echo "${USERNAME} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/01-${USERNAME}
-USER ${USERNAME}
-WORKDIR /home/${USERNAME}
-
 # Install rust
-USER ${USERNAME}
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
-RUN echo "export PATH=\"\$PATH:\$HOME/.cargo/bin\"" >> ~/.bash_aliases
-USER root
+RUN chmod -R a+rx /root/.cargo/bin
+RUN echo "export PATH=\"\$PATH:/root/.cargo/bin\"" >> ${PATH_FILE}
 
 # Install chrome (used to run karma tests)
 RUN mkdir -p /root/builds/chrome
 WORKDIR /root/builds/chrome
 RUN curl -o google-chrome-stable_current_amd64.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-# This first attempt to install chrome will fail, but will mark its dependencies.  The "|| true" prevents it from stopping the build
+# This first attempt to install chrome will fail, but will mark its missing dependencies.  The "|| true" prevents it from stopping the build
 RUN dpkg -i google-chrome-stable_current_amd64.deb || true
 # Install the marked dependencies
 RUN apt-get -f install -y
@@ -120,7 +116,6 @@ RUN apt-get -f install -y
 RUN dpkg -i google-chrome-stable_current_amd64.deb
 
 # Generate a self-signed certificate, used in running SSL servers
-USER root
 RUN mkdir -p /root/builds/cert
 WORKDIR /root/builds/cert
 RUN cp /usr/lib/ssl/openssl.cnf ./ssl.cnf
@@ -130,20 +125,44 @@ RUN openssl genrsa -des3 -passout pass:abcdef -out server.pass.key 2048
 RUN openssl rsa -passin pass:abcdef -in server.pass.key -out server.key
 RUN rm server.pass.key
 RUN openssl req -newkey rsa:2048 -x509 -nodes -keyout server.key -new -out server.crt -subj /CN=localhost.ssl -reqexts SAN -extensions SAN -sha256 -days 3650 -config ./ssl.cnf
-RUN mkdir -p /home/${USERNAME}/.ssh
-RUN cp /root/builds/cert/server.crt /home/${USERNAME}/.ssh
-RUN cp /root/builds/cert/server.key /home/${USERNAME}/.ssh
-RUN chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.ssh
-RUN chmod -R 600 /home/${USERNAME}/.ssh/*
-RUN chmod 700 /home/${USERNAME}/.ssh
-ENV NF_DEV_SERVER_KEY=/home/${USERNAME}/.ssh/server.key
-ENV NF_DEV_SERVER_CERT=/home/${USERNAME}/.ssh/server.crt
+RUN chmod -R a+r /root/builds/cert
+ENV NF_DEV_SERVER_KEY=/root/builds/cert/server.key
+ENV NF_DEV_SERVER_CERT=/root/builds/cert/server.crt
 
+##################################################
+# Configuration involving the noteflight user
+
+# Create the noteflight user, allow it to sudo without a password.
+# The user and associated group are created with a set uid and gid of
+# 275001.  Files created by this container in directories mounted from
+# the host will appear to be owned by that uid/gid when seen on the
+# host.  The host system may wish to create a user with the same
+# uid/gid so that there is a name associated with the uid/gid when
+# listing those directories on the host.
+ARG USERNAME=noteflight
+ARG NF_UID=275001
+RUN groupadd --gid ${NF_UID} ${USERNAME}
+RUN useradd --gid ${NF_UID} --uid ${NF_UID} -ms /bin/bash ${USERNAME}
+RUN echo "${USERNAME} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/01-${USERNAME}
 
 # Prepare /noteflight, where the NF repos will be mounted
 USER root
 RUN mkdir /noteflight
 RUN chown -R ${USERNAME}:${USERNAME} /noteflight
+
+# Prepare the location where the AWS credentials will be mounted
+USER ${USERNAME}
+RUN mkdir -p /home/${USERNAME}/.aws
+RUN touch /home/${USERNAME}/.aws/config
+
+# Prepare the location where the git credentials will be mounted
+USER ${USERNAME}
+RUN touch /home/${USERNAME}/.gitconfig
+
+# Prepare the location where the .ssh directory will be mounted
+USER ${USERNAME}
+RUN mkdir -p /home/${USERNAME}/.ssh
+RUN chmod 600 /home/${USERNAME}/.ssh
 
 # Configure bundle to install gems to a more permanent location
 # (bundle normally installs gems to somewhere in /usr/local/lib, which
@@ -155,14 +174,16 @@ ARG APPGEMS_PATH=/noteflight/webapp/site/vendor/bundle
 RUN mkdir -p ${APPGEMS_PATH}
 RUN chown -R ${USERNAME}:${USERNAME} ${APPGEMS_PATH}
 RUN bundle config set path ${APPGEMS_PATH}
-RUN echo "export PATH=\"\$PATH:${APPGEMS_PATH}/ruby/2.7.0/bin\"" >> ~/.bash_aliases
-RUN echo "export GEM_PATH=\"\$GEM_PATH:${APPGEMS_PATH}/ruby/2.7.0\"" >> ~/.bash_aliases
+USER root
+RUN echo "export PATH=\"\$PATH:${APPGEMS_PATH}/ruby/2.7.0/bin\"" >> ${PATH_FILE}
+RUN echo "export GEM_PATH=\"\$GEM_PATH:${APPGEMS_PATH}/ruby/2.7.0\"" >> ${PATH_FILE}
 
 # Add the nf-... utilities to the PATH
-USER ${USERNAME}
-RUN echo "export PATH=\"\$PATH:/noteflight/webapp/devbin\"" >> ~/.bash_aliases
-RUN echo "export PATH=\"\$PATH:/noteflight/devops-utils/bin\"" >> ~/.bash_aliases
-RUN echo "export PATH=\"\$PATH:/noteflight/devstack-containers/bin\"" >> ~/.bash_aliases
+USER root
+RUN echo "export PATH=\"\$PATH:/noteflight/webapp/devbin\"" >> ${PATH_FILE}
+RUN echo "export PATH=\"\$PATH:/noteflight/devops-utils/bin\"" >> ${PATH_FILE}
+RUN echo "export PATH=\"\$PATH:/noteflight/devstack-containers/bin\"" >> ${PATH_FILE}
 
+# By default, start in the user's home directory
 USER ${USERNAME}
 WORKDIR /home/${USERNAME}

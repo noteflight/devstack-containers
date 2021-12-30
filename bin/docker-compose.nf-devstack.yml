@@ -67,12 +67,18 @@ services:
     networks:
       - host
     volumes:
+      # Allows docker commands to be run from within the container
+      - /var/run/docker.sock:/var/run/docker.sock
       # Mount the noteflight repos
       - ${NF_REPOS}:/noteflight
       # Set the mock_s3 data to go to the devstack data directory
       - ${NF_DEVSTACK_DATA}/nf-site-mock_s3:/noteflight/webapp/site/public/mock_s3
-      # Allows docker commands to be run from within the container
-      - /var/run/docker.sock:/var/run/docker.sock
+      # Mount the AWS credentials
+      - ${NF_AWS_CONFIG_FILE}:/home/noteflight/.aws/config
+      # Mount the git config file
+      - ${NF_GIT_CONFIG_FILE}:/home/noteflight/.gitconfig
+      # Mount the .ssh directory
+      - ${NF_SSH_DIR}:/home/noteflight/.ssh
     entrypoint:
       /noteflight/webapp/devbin/nf-noop-loop
 networks:
