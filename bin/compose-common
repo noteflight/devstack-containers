@@ -6,6 +6,7 @@ docker-compose-run() {
     -it \
     -v ${DIR}:/nf \
     -v /var/run/docker.sock:/var/run/docker.sock \
+    --rm \
     --env NF_DEVSTACK_DATA=${NF_DEVSTACK_DATA} \
     --env NF_DEV_WEBSERVER_HOST=${NF_DEV_WEBSERVER_HOST} \
     --env NF_REPOS=${NF_REPOS} \
