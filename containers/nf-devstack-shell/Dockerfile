@@ -15,9 +15,6 @@ FROM ubuntu:20.04
 RUN apt-get -y upgrade
 RUN apt-get update
 
-# Prepare the file for modifying the system-wide path
-ARG PATH_FILE=/etc/profile.d/99-noteflight-paths
-
 # Build and install ruby from downloaded source
 ARG RUBY_VERSION=2.7.4
 RUN apt-get install -y curl gcc make bison openssl libssl-dev zlib1g-dev
@@ -99,11 +96,6 @@ RUN apt-get install -y docker
 RUN touch /var/run/docker.sock
 RUN chmod 666 /var/run/docker.sock
 
-# Install rust
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
-RUN chmod -R a+rx /root/.cargo/bin
-RUN echo "export PATH=\"\$PATH:/root/.cargo/bin\"" >> ${PATH_FILE}
-
 # Install chrome (used to run karma tests)
 RUN mkdir -p /root/builds/chrome
 WORKDIR /root/builds/chrome
@@ -115,6 +107,11 @@ RUN apt-get -f install -y
 # This second attempt should succeed
 RUN dpkg -i google-chrome-stable_current_amd64.deb
 
+# Install rust
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+RUN chmod -R a+rx /root/.cargo/bin
+ENV PATH=${PATH}:/root/.cargo/bin
+
 # Generate a self-signed certificate, used in running SSL servers
 RUN mkdir -p /root/builds/cert
 WORKDIR /root/builds/cert
@@ -125,7 +122,8 @@ RUN openssl genrsa -des3 -passout pass:abcdef -out server.pass.key 2048
 RUN openssl rsa -passin pass:abcdef -in server.pass.key -out server.key
 RUN rm server.pass.key
 RUN openssl req -newkey rsa:2048 -x509 -nodes -keyout server.key -new -out server.crt -subj /CN=localhost.ssl -reqexts SAN -extensions SAN -sha256 -days 3650 -config ./ssl.cnf
-RUN chmod -R a+r /root/builds/cert
+RUN chmod a+rx /root/builds/cert
+RUN chmod a+r /root/builds/cert/*
 ENV NF_DEV_SERVER_KEY=/root/builds/cert/server.key
 ENV NF_DEV_SERVER_CERT=/root/builds/cert/server.crt
 
@@ -144,6 +142,7 @@ ARG NF_UID=275001
 RUN groupadd --gid ${NF_UID} ${USERNAME}
 RUN useradd --gid ${NF_UID} --uid ${NF_UID} -ms /bin/bash ${USERNAME}
 RUN echo "${USERNAME} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/01-${USERNAME}
+WORKDIR /home/${USERNAME}
 
 # Prepare /noteflight, where the NF repos will be mounted
 USER root
@@ -175,14 +174,14 @@ RUN mkdir -p ${APPGEMS_PATH}
 RUN chown -R ${USERNAME}:${USERNAME} ${APPGEMS_PATH}
 RUN bundle config set path ${APPGEMS_PATH}
 USER root
-RUN echo "export PATH=\"\$PATH:${APPGEMS_PATH}/ruby/2.7.0/bin\"" >> ${PATH_FILE}
-RUN echo "export GEM_PATH=\"\$GEM_PATH:${APPGEMS_PATH}/ruby/2.7.0\"" >> ${PATH_FILE}
+ENV PATH=${PATH}:${APPGEMS_PATH}/ruby/2.7.0/bin
+ENV GEM_PATH=${GEM_PATH}:${APPGEMS_PATH}/ruby/2.7.0
 
 # Add the nf-... utilities to the PATH
 USER root
-RUN echo "export PATH=\"\$PATH:/noteflight/webapp/devbin\"" >> ${PATH_FILE}
-RUN echo "export PATH=\"\$PATH:/noteflight/devops-utils/bin\"" >> ${PATH_FILE}
-RUN echo "export PATH=\"\$PATH:/noteflight/devstack-containers/bin\"" >> ${PATH_FILE}
+ENV PATH=${PATH}:/noteflight/webapp/devbin
+ENV PATH=${PATH}:/noteflight/devops-utils/bin
+ENV PATH=${PATH}:/noteflight/devstack-containers/bin
 
 # By default, start in the user's home directory
 USER ${USERNAME}
