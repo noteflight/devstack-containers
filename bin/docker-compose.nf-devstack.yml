@@ -6,8 +6,8 @@ services:
     environment:
       ES_JAVA_OPTS: -Xms256m -Xmx256m
     ports:
-      - 19200:9200
-      - 19300:9300
+      - 9200:9200
+      - 9300:9300
     networks:
       - host
     volumes:
@@ -19,8 +19,8 @@ services:
     environment:
       ES_JAVA_OPTS: -Xms256m -Xmx256m
     ports:
-      - 19201:9200
-      - 19301:9300
+      - 9201:9200
+      - 9301:9300
     networks:
       - host
     volumes:
@@ -30,7 +30,7 @@ services:
     container_name: dynamodb
     image: nf-devstack-dynamodblocal
     ports:
-      - 18000:8000
+      - 8000:8000
     networks:
       - host
     volumes:
@@ -42,7 +42,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: newpassword
     ports:
-      - 13306:3306
+      - 3306:3306
     networks:
       - host
     volumes:
@@ -55,15 +55,15 @@ services:
       NF_DEVTEST_DATABASE_USER: "root"
       NF_DEVTEST_DATABASE_PASSWORD: "newpassword"
       NF_DEVTEST_DATABASE_HOST: "172.17.0.1"
-      NF_DEVTEST_DATABASE_PORT: "13306"
+      NF_DEVTEST_DATABASE_PORT: "3306"
       NF_DEVTEST_DYNAMODB_HOST: "172.17.0.1"
-      NF_DEVTEST_DYNAMODB_PORT: "18000"
+      NF_DEVTEST_DYNAMODB_PORT: "8000"
       NF_DEV_ELASTICSEARCH_HOST: "172.17.0.1"
-      NF_DEV_ELASTICSEARCH_PORT: "19200"
+      NF_DEV_ELASTICSEARCH_PORT: "9200"
       NF_TEST_ELASTICSEARCH_HOST: "172.17.0.1"
-      NF_TEST_ELASTICSEARCH_PORT: "19201"
+      NF_TEST_ELASTICSEARCH_PORT: "9201"
       NF_DEV_WEBSERVER_HOST: ${NF_DEV_WEBSERVER_HOST}
-      NF_DEV_WEBSERVER_PORT: 18080
+      NF_DEV_WEBSERVER_PORT: 8080
     networks:
       - host
     volumes:

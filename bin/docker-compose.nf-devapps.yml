@@ -9,7 +9,7 @@ services:
       file: docker-compose.nf-devstack.yml
       service: nf-shell
     ports:
-      - 18080:8080
+      - 8080:8080
     entrypoint:
       /noteflight/webapp/devbin/nf-run-client-webpack
 
@@ -19,7 +19,7 @@ services:
       file: docker-compose.nf-devstack.yml
       service: nf-shell
     ports:
-      - 13000:3000
+      - 3000:3000
     entrypoint:
       /noteflight/webapp/devbin/nf-run-rails-server
 
