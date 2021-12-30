@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Get the directory of this script
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+if [ -z "$1" ]
+   then
+  echo "Usage: nf-restore-devstack-data {backup tar file}"
+  exit 1
+fi
+
+if [ -d ${NF_DEVSTACK_DATA} ]
+   then
+  echo "${NF_DEVSTACK_DATA} still exists.  Please remove it or back it up (nf-delete-devstack-data or nf-backup-devstack-data)"
+  exit 1
+fi
+
+# Stop any existing devstack
+echo "Stopping devstack (if running)"
+${DIR}/nf-stop-devstack
+
+echo "Restoring from $1 to ${NF_DEVSTACK_DATA}"
+mkdir -p ${NF_DEVSTACK_DATA}
+cd ${NF_DEVSTACK_DATA}
+tar xfp $1 .
+

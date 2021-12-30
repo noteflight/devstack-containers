@@ -3,11 +3,8 @@
 # by a dev/test environment.  This should *NOT* depend on anything in
 # the application source code, such as package.json or Gemfile files.
 #
-# After installing the base software, this will also create a
-# "noteflight" user (with sudo privileges), and will create
-# /noteflight, with the expectation that containers running
-# this image will mount the directory containing NF repos into this
-# mount point.
+# This assumes that the noteflight source repos will eventually be
+# mounted at /noteflight.
 
 FROM ubuntu:20.04
 
@@ -89,18 +86,12 @@ RUN apt-get install -y dialog apt-utils
 # Used for displaying aws cli help pages
 RUN apt-get install -y groff
 
-# Prepare docker to be accessible from within the container (it will
-# only be accessible if the host runs the container with -v
-# /var/run/docker.sock:/var/run/docker.sock)
-RUN apt-get install -y docker
-RUN touch /var/run/docker.sock
-RUN chmod 666 /var/run/docker.sock
-
 # Install chrome (used to run karma tests)
 RUN mkdir -p /root/builds/chrome
 WORKDIR /root/builds/chrome
 RUN curl -o google-chrome-stable_current_amd64.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 # This first attempt to install chrome will fail, but will mark its missing dependencies.  The "|| true" prevents it from stopping the build
+RUN echo "*** Ignore complaints about missing installation components.  They will be installed in a couple steps"
 RUN dpkg -i google-chrome-stable_current_amd64.deb || true
 # Install the marked dependencies
 RUN apt-get -f install -y
@@ -112,6 +103,13 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 RUN chmod -R a+rx /root/.cargo/bin
 ENV PATH=${PATH}:/root/.cargo/bin
 
+# Install docker (instructions from https://docs.docker.com/engine/install/ubuntu/)
+RUN apt-get install -y ca-certificates curl gnupg lsb-release
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+RUN apt-get update
+RUN apt-get install -y docker-ce docker-ce-cli containerd.io
+
 # Generate a self-signed certificate, used in running SSL servers
 RUN mkdir -p /root/builds/cert
 WORKDIR /root/builds/cert
@@ -122,10 +120,11 @@ RUN openssl genrsa -des3 -passout pass:abcdef -out server.pass.key 2048
 RUN openssl rsa -passin pass:abcdef -in server.pass.key -out server.key
 RUN rm server.pass.key
 RUN openssl req -newkey rsa:2048 -x509 -nodes -keyout server.key -new -out server.crt -subj /CN=localhost.ssl -reqexts SAN -extensions SAN -sha256 -days 3650 -config ./ssl.cnf
-RUN chmod a+rx /root/builds/cert
-RUN chmod a+r /root/builds/cert/*
-ENV NF_DEV_SERVER_KEY=/root/builds/cert/server.key
-ENV NF_DEV_SERVER_CERT=/root/builds/cert/server.crt
+RUN cp -r /root/builds/cert /noteflightServersCert
+RUN chmod a+rx /noteflightServersCert
+RUN chmod a+r /noteflightServersCert/*
+ENV NF_DEV_SERVER_KEY=/noteflightServersCert/server.key
+ENV NF_DEV_SERVER_CERT=/noteflightServersCert/server.crt
 
 # Configure bundle to install gems to a more permanent location.
 # Bundle normally installs gems to somewhere in /usr/local/lib, which

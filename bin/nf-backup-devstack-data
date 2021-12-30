@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Get the directory of this script
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+# Stop any existing devstack
+echo "Stopping devstack (if running)"
+${DIR}/nf-stop-devstack
+
+FILENAME="${NF_DEVSTACK_DATA}_`date +%F_%H-%M-%S`.tar"
+echo "Backing up ${NF_DEVSTACK_DATA} to ${FILENAME}"
+
+cd ${NF_DEVSTACK_DATA}
+sudo tar cf ${FILENAME} .
+echo "Backed up ${NF_DEVSTACK_DATA} to ${FILENAME}"
