@@ -30,5 +30,13 @@ services:
       service: nf-shell
     entrypoint:
       /noteflight/webapp/devbin/nf-run-gulp
+
+  nf-speedyg:
+    container_name: nf-speedyg
+    extends:
+      file: docker-compose.nf-devstack.yml
+      service: nf-shell
+    entrypoint:
+      /noteflight/webapp/devbin/nf-run-speedyg
 networks:
   host:
