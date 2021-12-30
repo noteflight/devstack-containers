@@ -4,4 +4,25 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 . ${DIR}/compose-common
 
-docker-compose-devstack exec nf-shell /bin/bash
+if [ -z "$1" ]
+then
+    # If there are no arguments
+    SUFFIX=${PWD##$NF_REPOS}
+    if [[ $SUFFIX != "$PWD" ]]
+    then
+        # If the current directory is within NF_REPOS, then open a
+        # shell but cd to the appropriate directory under /noteflight
+        # first.
+        # FIXME - not sure how to do this
+#        docker-compose-devstack exec nf-shell /bin/bash -c "cd /noteflight && /bin/bash"
+        docker-compose-devstack exec nf-shell /bin/bash
+    else
+        # If the current directory is not within NF_REPOS, then just
+        # open a shell
+        docker-compose-devstack exec nf-shell /bin/bash
+    fi
+else
+    # If there are arguments, then pass them to the shell as the
+    # commnd to be invoked
+    docker-compose-devstack exec nf-shell $1 $2 $3 $4 $5 $6 $7 $8 $9
+fi
