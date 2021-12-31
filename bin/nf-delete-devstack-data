@@ -6,5 +6,8 @@
 # restarted.  The state of the devstack services can also be preserved
 # by moving or copying this directory (while the devstack is stopped)
 
+# Exit immediately on error
+set -e
+
 echo "Removing directory ${NF_DEVSTACK_DATA}"
 sudo rm -rf ${NF_DEVSTACK_DATA}

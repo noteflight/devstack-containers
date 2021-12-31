@@ -19,6 +19,9 @@
 #   GIT_BRANCH: the name of the branch being built
 #   GIT_COMMIT: the full commit id of the commit being built
 
+# Exit immediately on error
+set -e
+
 # Get the directory of this script
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 

@@ -1,10 +1,10 @@
 #!/bin/bash
 
+# Exit immediately on error
+set -e
+
 # Get the directory of this script
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-
-# Get the current timezone
-NF_TIMEZONE=`cat /etc/timezone`
 
 docker build \
        --build-arg NF_DEVSTACK_USER=${NF_DEVSTACK_USER} \
