@@ -113,6 +113,7 @@ RUN apt-get install -y docker-ce docker-ce-cli containerd.io
 # The container will run with /var/run/docker.sock mapped to the host
 # so we can run docker within the container.  We need the proper
 # permissions on it for that to work.
+RUN touch /var/run/docker.sock
 RUN chmod a+rw /var/run/docker.sock
 
 # Generate a self-signed certificate, used in running SSL servers
