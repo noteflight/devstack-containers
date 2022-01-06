@@ -38,7 +38,7 @@ services:
     restart: always
   mysql:
     container_name: mysql
-    image: mysql:5.7.35
+    image: nf-devstack-mysql
     environment:
       MYSQL_ROOT_PASSWORD: newpassword
     ports:

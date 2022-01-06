@@ -2,8 +2,9 @@
 
 docker-compose-run() {
   COMPOSE_FILE=$1
+  OPTIONS=$2
   docker run \
-    -it \
+    ${OPTIONS} \
     -v ${DIR}:/nf \
     -v /var/run/docker.sock:/var/run/docker.sock \
     --rm \
@@ -11,18 +12,27 @@ docker-compose-run() {
     --env NF_DEV_WEBSERVER_HOST=${NF_DEV_WEBSERVER_HOST} \
     --env NF_REPOS=${NF_REPOS} \
     --env NF_DEVSTACK_USER=${NF_DEVSTACK_USER} \
+    --env NF_DEVSTACK_USER_DIR=${NF_DEVSTACK_USER_DIR} \
     --env NF_AWS_CONFIG_FILE=${NF_AWS_CONFIG_FILE} \
     --env NF_GIT_CONFIG_FILE=${NF_GIT_CONFIG_FILE} \
     --env NF_SSH_DIR=${NF_SSH_DIR} \
     docker/compose \
     -f ${COMPOSE_FILE} \
-    $2 $3 $4 $5 $6 $7 $8 $9
+    $3 $4 $5 $6 $7 $8 $9
 }
 
 docker-compose-devstack() {
-  docker-compose-run /nf/docker-compose.nf-devstack.yml $1 $2 $3 $4 $5 $6 $7 $8 $9
+  docker-compose-run /nf/docker-compose.nf-devstack.yml "" $1 $2 $3 $4 $5 $6 $7 $8 $9
+}
+
+docker-compose-devstack-interactive() {
+  docker-compose-run /nf/docker-compose.nf-devstack.yml "-it" $1 $2 $3 $4 $5 $6 $7 $8 $9
 }
 
 docker-compose-devapps() {
-  docker-compose-run /nf/docker-compose.nf-devapps.yml $1 $2 $3 $4 $5 $6 $7 $8 $9
+  docker-compose-run /nf/docker-compose.nf-devapps.yml "" $1 $2 $3 $4 $5 $6 $7 $8 $9
+}
+
+docker-compose-devapps-interactive() {
+  docker-compose-run /nf/docker-compose.nf-devapps.yml "-it" $1 $2 $3 $4 $5 $6 $7 $8 $9
 }

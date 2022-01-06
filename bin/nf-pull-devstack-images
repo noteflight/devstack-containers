@@ -17,7 +17,7 @@ docker pull amazon/aws-cli
 ECR_SERVER=915434789528.dkr.ecr.us-east-1.amazonaws.com
 
 # Log in to ECR's Docker registry
-AWS_CONFIG_FILE=${NF_AWS_CONFIG_FILE} aws ecr get-login-password --region=us-east-1 | docker login -u AWS --password-stdin ${ECR_SERVER}
+docker run --rm -e AWS_PROFILE=${NF_AWS_PROFILE} -v ${NF_DEVSTACK_USER_DIR}/.aws:/root/.aws amazon/aws-cli ecr get-login-password --region=us-east-1 | docker login -u AWS --password-stdin ${ECR_SERVER}
 
 # Pull the images and give them local tags
 docker pull ${ECR_SERVER}/nf-devstack-shell:latest
@@ -29,7 +29,10 @@ docker tag ${ECR_SERVER}/nf-devstack-dynamodblocal nf-devstack-dynamodblocal
 docker pull ${ECR_SERVER}/nf-devstack-elasticsearch:latest
 docker tag ${ECR_SERVER}/nf-devstack-elasticsearch nf-devstack-elasticsearch
 
+MYSQL_VERSION=5.7.35
+docker pull mysql:${MYSQL_VERSION}
+docker tag mysql:${MYSQL_VERSION} nf-devstack-mysql
+
 # Rebuild the nf-devstack-shell-local since nf-devstack-shell may have
 # changed
 ${DIR}/nf-build-devstack-shell-local
-

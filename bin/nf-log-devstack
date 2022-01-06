@@ -7,4 +7,4 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 . ${DIR}/compose-common
 
-docker-compose-devstack logs $1 $2 $3 $4 $5 $6 $7 $8 $9
+docker-compose-devstack-interactive logs $1 $2 $3 $4 $5 $6 $7 $8 $9
