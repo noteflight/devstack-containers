@@ -150,7 +150,7 @@ Dockerfiles for various dev, test, and build operations
       * `https://${NF_DEV_WEBSERVER_HOST}:8080/` - you may be warned about the untrusted certificate.  Get past that, and you should see "Noteflight Notation Dev Sandbox"
       * `https://${NF_DEV_WEBSERVER_HOST}:3000/` - you might see a similar warning.  Get past that, and you should see the noteflight site
     * As with `nf-start-devstack`, there are a few other useful commands you can run:
-      * `nf-stop-devapps` - brings down the devstack services.  NOTE - there is currently a bug where this will also stop the devstack, thereby kicking you out of your shell.
+      * `nf-stop-devapps` - brings down the devstack apps
       * `nf-show-devapps` - show the processes running in each devapp container
       * `nf-log-devapps` - show combined logs from all the devapp containers.  Do `nf-log-devapps -f` to get a tailing log.  It's highly recommended that you keep this running in some window somewhere, so you can see any relevant activity.
 
