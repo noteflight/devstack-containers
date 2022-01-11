@@ -81,7 +81,7 @@ RUN ./aws/install
 # Install useful utilities
 RUN apt-get install -y telnet emacs sudo zip wget nano
 RUN apt-get install -y git jq
-RUN apt-get install -y iproute2 iputils-ping ssh
+RUN apt-get install -y iproute2 iputils-ping ssh bind9-utils
 RUN apt-get install -y dialog apt-utils
 # Used for displaying aws cli help pages
 RUN apt-get install -y groff
@@ -97,14 +97,6 @@ RUN dpkg -i google-chrome-stable_current_amd64.deb || true
 RUN apt-get -f install -y
 # This second attempt should succeed
 RUN dpkg -i google-chrome-stable_current_amd64.deb
-
-# Install rust
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
-RUN chmod -R a+rx /root/.cargo/bin
-RUN mv /root/.cargo /usr/local/bin/cargo
-ENV PATH=${PATH}:/usr/local/bin/cargo/bin
-RUN rustup install stable
-RUN rustup default stable
 
 # Install docker (instructions from https://docs.docker.com/engine/install/ubuntu/)
 RUN apt-get install -y ca-certificates curl gnupg lsb-release
