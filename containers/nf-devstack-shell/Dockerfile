@@ -79,7 +79,7 @@ RUN unzip awscliv2.zip
 RUN ./aws/install
 
 # Install useful utilities
-RUN apt-get install -y telnet emacs sudo zip
+RUN apt-get install -y telnet emacs sudo zip wget nano
 RUN apt-get install -y git jq
 RUN apt-get install -y iproute2 iputils-ping ssh
 RUN apt-get install -y dialog apt-utils
