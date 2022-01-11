@@ -1,6 +1,11 @@
 # devstack-containers
 Dockerfiles for various dev, test, and build operations
 
+## Overview
+
+FIXME - explain overall concept, and why
+Create a single containerized environment that's the basis for developing locally, creating builds, testing builds, and running builds in production.  For developers, it simplify the process of initial setup, and also day-to-day development tasks.
+
 ## Installing on a new Linux machine (either VM or actual machine)
 
 ### Set up credentials
@@ -154,8 +159,20 @@ Dockerfiles for various dev, test, and build operations
       * `nf-show-devapps` - show the processes running in each devapp container
       * `nf-log-devapps` - show combined logs from all the devapp containers.  Do `nf-log-devapps -f` to get a tailing log.  It's highly recommended that you keep this running in some window somewhere, so you can see any relevant activity.
 
+## Using the Devstack Shell
+
+With the devstack environment in place, the `nfsh` command is available to run a shell in which the required development tools are installed and in the PATH.  The `noteflight/webapp` repo contains a convenient set of [devbin scripts](https://github.com/noteflight/webapp/devbin) that can be run within this shell.
+
+When developing with the devstack you can choose to either work within the `nfsh` shell, or work within your host's environment shell, or some combination of the two.  If you choose to work within the `nfsh` shell, then your environment will be as described above, with Noteflight repos mounted at `/noteflight` and all development tools installed and available.  The downside is that this shell is running in a pre-built container that may not have all of the installed tools that you're comfortable using.  You can customize this by editing [the local Dockerfile](containers/nf-devstack-shell-local/Dockerfile) and rebuilding your container, but you might not want to go through this trouble.
+
+The alternative is to continue working within your host's environment, which likely contains the installed tools and customizations that you want.  The downside is that the versions of the tools used by Noteflight might not be installed or up to date in your host environment.  You can, however, work around this by invoking `nfsh` for single commands.  This allows those commands to run within the required environment, without forcing you to stay in that environment.  When combined with the [devbin scripts](https://github.com/noteflight/webapp/devbin), this may be sufficient for your development tasks.  For example, you can run `nfsh nf-rails c`, `nfsh nf-rubocop`, etc.
+
+And finally, you can always run a combination of the two.  Stay in your host environment, run single commands as appropriate, or just enter `nfsh` if you need to spend an extended amount of time in the Noteflight environment.
+
+
 ## Container Development
 
 How to add to the containers
 
 FIXME - describe this
+FIXME - cloudformation for automated build

@@ -19,21 +19,21 @@ docker-compose-run() {
     docker/compose \
     -p ${COMPOSE_PROJECT} \
     -f /nf/docker-compose.${COMPOSE_PROJECT}.yml \
-    $3 $4 $5 $6 $7 $8 $9
+    "${@:3}"
 }
 
 docker-compose-devstack() {
-  docker-compose-run nf-devstack "" $1 $2 $3 $4 $5 $6 $7 $8 $9
+  docker-compose-run nf-devstack "" "$@"
 }
 
 docker-compose-devstack-interactive() {
-  docker-compose-run nf-devstack "-it" $1 $2 $3 $4 $5 $6 $7 $8 $9
+  docker-compose-run nf-devstack "-it" "$@"
 }
 
 docker-compose-devapps() {
-  docker-compose-run nf-devapps "" $1 $2 $3 $4 $5 $6 $7 $8 $9
+  docker-compose-run nf-devapps "" "$@"
 }
 
 docker-compose-devapps-interactive() {
-  docker-compose-run nf-devapps "-it" $1 $2 $3 $4 $5 $6 $7 $8 $9
+  docker-compose-run nf-devapps "-it" "$@"
 }
