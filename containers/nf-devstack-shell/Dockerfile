@@ -101,7 +101,10 @@ RUN dpkg -i google-chrome-stable_current_amd64.deb
 # Install rust
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 RUN chmod -R a+rx /root/.cargo/bin
-ENV PATH=${PATH}:/root/.cargo/bin
+RUN mv /root/.cargo /usr/local/bin/cargo
+ENV PATH=${PATH}:/usr/local/bin/cargo/bin
+RUN rustup install stable
+RUN rustup default stable
 
 # Install docker (instructions from https://docs.docker.com/engine/install/ubuntu/)
 RUN apt-get install -y ca-certificates curl gnupg lsb-release
