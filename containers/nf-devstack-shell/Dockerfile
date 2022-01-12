@@ -78,6 +78,20 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 RUN unzip awscliv2.zip
 RUN ./aws/install
 
+# Install rust
+#
+# rust by default gets installed into a user's home directory, which
+# we don't want since the user will not have been created yet in this
+# base image.  We instead use RUSTUP_HOME and CARGO_HOME to
+# control the installation location (see
+# https://github.com/rust-lang/rustup/issues/1085)
+ENV RUST_DIR=/opt/rust
+ENV RUSTUP_HOME=${RUST_DIR}
+ENV CARGO_HOME=${RUST_DIR}
+ENV PATH=${PATH}:${RUST_DIR}/bin
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --no-modify-path
+RUN chmod a+rx ${RUST_DIR}/bin/*
+
 # Install useful utilities
 RUN apt-get install -y telnet emacs sudo zip wget nano
 RUN apt-get install -y git jq

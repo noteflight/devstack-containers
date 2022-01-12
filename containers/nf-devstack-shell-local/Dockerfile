@@ -28,16 +28,6 @@ RUN usermod -aG host-docker ${NF_DEVSTACK_USER}
 RUN ln -snf /usr/share/zoneinfo/${TATERDEVENV_TIMEZONE} /etc/localtime
 RUN echo ${NF_DEVSTACK_TIMEZONE} > /etc/timezone
 
-# Install rust - it's unfortunate that it has to be installed by the
-# user, since that means it can't be part of the more global install.
-# Perhaps there's a better way to do it.
-USER ${NF_DEVSTACK_USER}
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
-ENV PATH=${PATH}:~/.cargo/bin
-RUN rustup install stable
-RUN rustup default stablea
-USER root
-
 ENV AWS_PROFILE=${NF_AWS_PROFILE}
 
 # These are needed so that if nf-xxx-devapps are called from within
