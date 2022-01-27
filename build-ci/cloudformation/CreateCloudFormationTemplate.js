@@ -243,10 +243,32 @@ function addCodePipelineIAMRole(Resources, Outputs, containers) {
 function addContainerComponents(Resources, Outputs, container) {
   // Add the ECR Repository
   const repositoryResource = `Repository${container}`
+
+  // Assign a policy that allows CodeBuild to pull from the repo (see
+  // https://docs.aws.amazon.com/codebuild/latest/userguide/sample-ecr.html)
+  const ecrPolicy = {
+    Version: "2012-10-17",
+    Statement: [
+      {
+        Sid: "CodeBuildAccessPrincipal",
+        Effect: "Allow",
+        Principal: {
+          Service: "codebuild.amazonaws.com"
+        },
+        Action: [
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage",
+          "ecr:BatchCheckLayerAvailability"
+        ]
+      },
+    ]
+  }
+  
   Resources[repositoryResource] = {
     Type : "AWS::ECR::Repository",
     Properties: {
       RepositoryName: `nf-devstack-${container}`,
+      RepositoryPolicyText: ecrPolicy,
     }
   }
   Outputs[repositoryResource] = {
