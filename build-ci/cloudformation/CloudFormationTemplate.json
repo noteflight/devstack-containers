@@ -235,7 +235,24 @@
     "Repositoryshell": {
       "Type": "AWS::ECR::Repository",
       "Properties": {
-        "RepositoryName": "nf-devstack-shell"
+        "RepositoryName": "nf-devstack-shell",
+        "RepositoryPolicyText": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "CodeBuildAccessPrincipal",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codebuild.amazonaws.com"
+              },
+              "Action": [
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "ecr:BatchCheckLayerAvailability"
+              ]
+            }
+          ]
+        }
       }
     },
     "CloudWatchLogGroupshell": {
@@ -303,7 +320,24 @@
     "Repositorydynamodblocal": {
       "Type": "AWS::ECR::Repository",
       "Properties": {
-        "RepositoryName": "nf-devstack-dynamodblocal"
+        "RepositoryName": "nf-devstack-dynamodblocal",
+        "RepositoryPolicyText": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "CodeBuildAccessPrincipal",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codebuild.amazonaws.com"
+              },
+              "Action": [
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "ecr:BatchCheckLayerAvailability"
+              ]
+            }
+          ]
+        }
       }
     },
     "CloudWatchLogGroupdynamodblocal": {
@@ -371,7 +405,24 @@
     "Repositoryelasticsearch": {
       "Type": "AWS::ECR::Repository",
       "Properties": {
-        "RepositoryName": "nf-devstack-elasticsearch"
+        "RepositoryName": "nf-devstack-elasticsearch",
+        "RepositoryPolicyText": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "CodeBuildAccessPrincipal",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codebuild.amazonaws.com"
+              },
+              "Action": [
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "ecr:BatchCheckLayerAvailability"
+              ]
+            }
+          ]
+        }
       }
     },
     "CloudWatchLogGroupelasticsearch": {
