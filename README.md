@@ -3,8 +3,9 @@ Dockerfiles for various dev, test, and build operations
 
 ## Overview
 
-FIXME - explain overall concept, and why
-Create a single containerized environment that's the basis for developing locally, creating builds, testing builds, and running builds in production.  For developers, it simplify the process of initial setup, and also day-to-day development tasks.
+FIXME - explain overall concept, and why (Create a single containerized environment that's the basis for developing locally, creating builds, testing builds, and running builds in production.  For developers, it simplify the process of initial setup, and also day-to-day development tasks.)
+
+There's a [writeup of the current state](https://docs.google.com/document/d/1f-ebHsjh8OCq-cFmKrKtIRZ1PA3tntiad7t624Om-go/edit?usp=sharing).
 
 ## Installing on a new Linux machine (either VM or actual machine)
 
