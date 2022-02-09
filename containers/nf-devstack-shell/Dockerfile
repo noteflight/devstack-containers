@@ -81,8 +81,8 @@ RUN ./aws/install
 # Install the AWS SSM Session Manager plugin (enables exec'ing into
 # ECS containers)
 WORKDIR /root/builds/awscli
-curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o "session-manager-plugin.deb"
-dpkg -i /root/builds/awscli/session-manager-plugin.deb
+RUN curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o "session-manager-plugin.deb"
+RUN dpkg -i /root/builds/awscli/session-manager-plugin.deb
 
 # Install rust
 #
