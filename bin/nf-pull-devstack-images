@@ -29,9 +29,8 @@ docker tag ${ECR_SERVER}/nf-devstack-dynamodblocal nf-devstack-dynamodblocal
 docker pull ${ECR_SERVER}/nf-devstack-elasticsearch:latest
 docker tag ${ECR_SERVER}/nf-devstack-elasticsearch nf-devstack-elasticsearch
 
-MYSQL_VERSION=5.7.35
-docker pull mysql:${MYSQL_VERSION}
-docker tag mysql:${MYSQL_VERSION} nf-devstack-mysql
+docker pull ${ECR_SERVER}/nf-devstack-mysql:latest
+docker tag ${ECR_SERVER}/nf-devstack-mysql nf-devstack-mysql
 
 # Rebuild the nf-devstack-shell-local since nf-devstack-shell may have
 # changed

@@ -28,6 +28,7 @@ function generateSpec() {
     "shell",
     "dynamodblocal",
     "elasticsearch",
+    "mysql",
   ]
 
   // Add the S3 bucket for storing build logs

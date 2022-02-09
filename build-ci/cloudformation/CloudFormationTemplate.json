@@ -54,6 +54,12 @@
                         "Repositoryelasticsearch",
                         "Arn"
                       ]
+                    },
+                    {
+                      "Fn::GetAtt": [
+                        "Repositorymysql",
+                        "Arn"
+                      ]
                     }
                   ]
                 },
@@ -101,6 +107,12 @@
                     {
                       "Fn::GetAtt": [
                         "CloudWatchLogGroupelasticsearch",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::GetAtt": [
+                        "CloudWatchLogGroupmysql",
                         "Arn"
                       ]
                     }
@@ -221,6 +233,12 @@
                     {
                       "Fn::GetAtt": [
                         "CodeBuildelasticsearch",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::GetAtt": [
+                        "CodeBuildmysql",
                         "Arn"
                       ]
                     }
@@ -487,6 +505,91 @@
         }
       }
     },
+    "Repositorymysql": {
+      "Type": "AWS::ECR::Repository",
+      "Properties": {
+        "RepositoryName": "nf-devstack-mysql",
+        "RepositoryPolicyText": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "CodeBuildAccessPrincipal",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codebuild.amazonaws.com"
+              },
+              "Action": [
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "ecr:BatchCheckLayerAvailability"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "CloudWatchLogGroupmysql": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/codebuild/devstack/mysql",
+        "RetentionInDays": 180
+      }
+    },
+    "CodeBuildmysql": {
+      "Type": "AWS::CodeBuild::Project",
+      "Properties": {
+        "Name": "devstack-mysql",
+        "Description": "Builds the devstack-mysql Docker image and pushes it to the nf-devstack-mysql ECR repository",
+        "Source": {
+          "Type": "CODEPIPELINE",
+          "BuildSpec": "build-ci/codebuild/buildspec.yml"
+        },
+        "Artifacts": {
+          "Type": "CODEPIPELINE"
+        },
+        "Cache": {
+          "Type": "NO_CACHE"
+        },
+        "Environment": {
+          "Type": "LINUX_CONTAINER",
+          "Image": "aws/codebuild/standard:4.0",
+          "ImagePullCredentialsType": "CODEBUILD",
+          "ComputeType": "BUILD_GENERAL1_SMALL",
+          "PrivilegedMode": true
+        },
+        "TimeoutInMinutes": 60,
+        "LogsConfig": {
+          "CloudWatchLogs": {
+            "Status": "ENABLED",
+            "GroupName": "/aws/codebuild/devstack/mysql"
+          },
+          "S3Logs": {
+            "Status": "ENABLED",
+            "EncryptionDisabled": true,
+            "Location": {
+              "Fn::Join": [
+                "/",
+                [
+                  {
+                    "Fn::GetAtt": [
+                      "BuildBucket",
+                      "Arn"
+                    ]
+                  },
+                  "build-log"
+                ]
+              ]
+            }
+          }
+        },
+        "ServiceRole": {
+          "Fn::GetAtt": [
+            "CodeBuildRole",
+            "Arn"
+          ]
+        }
+      }
+    },
     "CodePipeline": {
       "Type": "AWS::CodePipeline::Pipeline",
       "Properties": {
@@ -613,6 +716,33 @@
                 "OutputArtifacts": [
                   {
                     "Name": "BuildArtifact-elasticsearch"
+                  }
+                ]
+              },
+              {
+                "Name": "Build-mysql",
+                "Namespace": "BuildVariables-mysql",
+                "Region": "us-east-1",
+                "InputArtifacts": [
+                  {
+                    "Name": "SourceArtifact"
+                  }
+                ],
+                "ActionTypeId": {
+                  "Owner": "AWS",
+                  "Category": "Build",
+                  "Version": "1",
+                  "Provider": "CodeBuild"
+                },
+                "Configuration": {
+                  "ProjectName": {
+                    "Ref": "CodeBuildmysql"
+                  },
+                  "EnvironmentVariables": "[{\"name\":\"GIT_COMMIT\",\"value\":\"#{SourceVariables.CommitId}\"},{\"name\":\"GIT_BRANCH\",\"value\":\"#{SourceVariables.BranchName}\"},{\"name\":\"CONTAINER_NAME\",\"value\":\"mysql\"}]"
+                },
+                "OutputArtifacts": [
+                  {
+                    "Name": "BuildArtifact-mysql"
                   }
                 ]
               }
@@ -787,6 +917,51 @@
       "Value": {
         "Fn::GetAtt": [
           "CodeBuildelasticsearch",
+          "Arn"
+        ]
+      }
+    },
+    "Repositorymysql": {
+      "Description": "The ECR containing the built mysql images",
+      "Value": {
+        "Ref": "Repositorymysql"
+      }
+    },
+    "RepositorymysqlArn": {
+      "Description": "The arn of the ECR containing the built mysql images",
+      "Value": {
+        "Fn::GetAtt": [
+          "Repositorymysql",
+          "Arn"
+        ]
+      }
+    },
+    "CloudWatchLogGroupmysql": {
+      "Description": "The CloudWatch LogGroup for the mysql builds",
+      "Value": {
+        "Ref": "CloudWatchLogGroupmysql"
+      }
+    },
+    "CloudWatchLogGroupmysqlArn": {
+      "Description": "The arn of the CloudWatch LogGroup for the mysql builds",
+      "Value": {
+        "Fn::GetAtt": [
+          "CloudWatchLogGroupmysql",
+          "Arn"
+        ]
+      }
+    },
+    "CodeBuildmysql": {
+      "Description": "The CodeBuild project for the mysql builds",
+      "Value": {
+        "Ref": "CodeBuildmysql"
+      }
+    },
+    "CodeBuildmysqlArn": {
+      "Description": "The arn of the CodeBuild project for the mysql builds",
+      "Value": {
+        "Fn::GetAtt": [
+          "CodeBuildmysql",
           "Arn"
         ]
       }
