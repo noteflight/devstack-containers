@@ -103,6 +103,7 @@ RUN apt-get install -y telnet emacs sudo zip wget nano rsync
 RUN apt-get install -y git jq
 RUN apt-get install -y iproute2 iputils-ping ssh bind9-utils
 RUN apt-get install -y dialog apt-utils
+RUN apt-get install -y tmux
 # Used for displaying aws cli help pages
 RUN apt-get install -y groff
 
