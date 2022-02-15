@@ -78,6 +78,9 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 RUN unzip awscliv2.zip
 RUN ./aws/install
 
+# Install the aws cdk (cloud development kit)
+RUN npm install -g aws-cdk
+
 # Install the AWS SSM Session Manager plugin (enables exec'ing into
 # ECS containers)
 WORKDIR /root/builds/awscli
