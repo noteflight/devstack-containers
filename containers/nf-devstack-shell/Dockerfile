@@ -110,6 +110,11 @@ RUN apt-get install -y tmux
 # Used for displaying aws cli help pages
 RUN apt-get install -y groff
 
+# Install yq, like jq but for YAML files
+RUN wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+RUN chmod a+rx /usr/local/bin/yq
+
+
 # Install chrome (used to run karma tests)
 RUN mkdir -p /root/builds/chrome
 WORKDIR /root/builds/chrome
