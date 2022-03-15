@@ -40,6 +40,9 @@ ENV NF_DEVSTACK_USER_DIR=${NF_DEVSTACK_USER_DIR}
 ENV NF_WEBPACK_SERVER_KEY=/noteflightServersCert/server.key
 ENV NF_WEBPACK_SERVER_CERT=/noteflightServersCert/server.crt
 
+# Set NF_WEBAPP_DIR, currently used by the staging scripts
+ENV NF_WEBAPP_DIR=/noteflight/webapp
+
 # Default to the user's home directory
 USER ${NF_DEVSTACK_USER}
 WORKDIR /home/${NF_DEVSTACK_USER}
