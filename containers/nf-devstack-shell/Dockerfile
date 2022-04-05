@@ -102,7 +102,7 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --no-modify-path
 RUN chmod a+rx ${RUST_DIR}/bin/*
 
 # Install useful utilities
-RUN apt-get install -y telnet emacs sudo zip wget nano rsync
+RUN apt-get install -y telnet emacs sudo zip wget nano rsync dnsutils
 RUN apt-get install -y git jq
 RUN apt-get install -y iproute2 iputils-ping ssh bind9-utils
 RUN apt-get install -y dialog apt-utils
