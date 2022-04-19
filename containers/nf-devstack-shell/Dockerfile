@@ -25,8 +25,8 @@ RUN make
 RUN make install
 
 # Download and install node
-ARG NODE_VERSION=14.17.5
-ARG NPM_VERSION=7.20
+ARG NODE_VERSION=16.13.1
+ARG NPM_VERSION=8.3.0
 RUN mkdir -p /root/builds/node
 WORKDIR /root/builds/node
 RUN curl -o node-v${NODE_VERSION}-linux-x64.tar.gz https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz
