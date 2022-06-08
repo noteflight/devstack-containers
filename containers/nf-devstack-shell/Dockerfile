@@ -169,7 +169,7 @@ ENV GEM_PATH=${GEM_PATH}:${APPGEMS_PATH}/ruby/2.7.0
 
 # Add the nf-... utilities to the PATH
 ENV PATH=${PATH}:/noteflight/webapp/devbin
-ENV PATH=${PATH}:/noteflight/devops-utils/bin
+ENV PATH=${PATH}:/noteflight/devops-utils/cdk-stacks/stagingenv/bin
 ENV PATH=${PATH}:/noteflight/devstack-containers/bin
 
 # By default start in /noteflight
